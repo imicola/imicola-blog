@@ -47,3 +47,10 @@ src/data/bangumi-data.json
 
 # Bilibili generated data
 src/data/bilibili-data.json
+
+# ai agent
+.copilot/
+.claude/
+
+temp 
+# .gitignore文件的作用是，在这个文件里的文件都不会被git追踪

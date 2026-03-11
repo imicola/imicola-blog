@@ -127,7 +127,9 @@ export const siteConfig: SiteConfig = {
 				"/assets/desktop-banner/6.webp",
 				"/assets/desktop-banner/muzimi.webp",
 				"/assets/desktop-banner/radom01.webp",
-				"/assets/desktop-banner/luckystar.webp"
+				"/assets/desktop-banner/luckystar.webp",
+				"/assets/mobile-banner/Alice.webp",
+				"/assets/mobile-banner/670.webp",
 			], // 桌面横幅图片
 			mobile: [
 				"/assets/mobile-banner/1.webp",
@@ -140,7 +142,7 @@ export const siteConfig: SiteConfig = {
 				"/assets/mobile-banner/radom01.webp",
 				"/assets/mobile-banner/luckystar.webp",
 				"/assets/mobile-banner/Alice.webp",
-				"/assets/mobile-banner/670.webp"
+				"/assets/mobile-banner/670.webp",
 			], // 移动横幅图片
 		}, // 使用本地横幅图片
 
@@ -247,7 +249,8 @@ export const fullscreenWallpaperConfig: FullscreenWallpaperConfig = {
 			"/assets/desktop-banner/muzimi.webp",
 			"/assets/desktop-banner/radom01.webp",
 			"/assets/desktop-banner/luckystar.webp",
-			"/assets/desktop-banner/Alice.webp"
+			"/assets/desktop-banner/Alice.webp",
+			"/assets/mobile-banner/670.webp",
 		], // 桌面横幅图片
 		mobile: [
 			"/assets/mobile-banner/1.webp",
@@ -260,7 +263,7 @@ export const fullscreenWallpaperConfig: FullscreenWallpaperConfig = {
 			"/assets/mobile-banner/radom01.webp",
 			"/assets/mobile-banner/luckystar.webp",
 			"/assets/mobile-banner/Alice.webp",
-			"/assets/mobile-banner/670.webp"
+			"/assets/mobile-banner/670.webp",
 		], // 移动横幅图片
 	}, // 使用本地横幅图片
 	position: "center", // 壁纸位置，等同于 object-position
@@ -370,7 +373,7 @@ export const navBarConfig: NavBarConfig = {
 export const profileConfig: ProfileConfig = {
 	avatar: "assets/images/nona_cut.webp", // 相对于 /src 目录。如果以 '/' 开头，则相对于 /public 目录
 	name: "imicola",
-	bio: "为自由而自由,为意志而意志,为道德而道德", 
+	bio: "为自由而自由,为意志而意志,为道德而道德",
 	typewriter: {
 		enable: true, // 启用个人简介打字机效果
 		speed: 80, // 打字速度（毫秒）
@@ -624,7 +627,7 @@ export const pioConfig: import("./types/config").PioConfig = {
 	mode: "draggable", // 默认为可拖拽模式
 	hiddenOnMobile: true, // 默认在移动设备上隐藏
 	dialog: {
-		welcome: "Welcome to Mizuki Website!", // 欢迎词
+		welcome: "看看谁来了喵", // 欢迎词
 		touch: [
 			"What are you doing?",
 			"Stop touching me!",
@@ -634,7 +637,7 @@ export const pioConfig: import("./types/config").PioConfig = {
 		home: "Click here to go back to homepage!", // 首页提示
 		skin: ["Want to see my new outfit?", "The new outfit looks great~"], // 换装提示
 		close: "QWQ See you next time~", // 关闭提示
-		link: "https://github.com/matsuzaka-yuki/Mizuki", // 关于链接
+		link: "https://github.com/imicola/imicola-blog", // 关于链接
 	},
 };
 

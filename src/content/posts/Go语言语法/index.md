@@ -56,7 +56,7 @@ var(
 
 ### `fmt`包的标准输入输出：
 
-```Go
+```go
 import (
 	"fmt"
 )
@@ -78,7 +78,7 @@ func main() {
 
 ### `bufio`的输入输出
 
-```Go
+```go
 func f2() {
 	// 标准读入
 	reader := bufio.NewReader(os.Stdin) // 创建一个输入流,类似于Java

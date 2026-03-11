@@ -1,6 +1,6 @@
 ---
 title: User Space and Kernel Space
-published: 2026-2-4
+published: 2026-02-04
 pinned: true
 description: Linux操作空间的区分
 tags: [Linux, Operating System]
@@ -8,7 +8,7 @@ category: Examples
 licenseName: "CC BY 4.0"
 author: imicola
 draft: false
-date: 2026-2-4
+date: 2026-02-04
 image: "./cover.jpg"
 pubDate: 2026-3-11
 ---

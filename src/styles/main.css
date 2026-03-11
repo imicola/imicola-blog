@@ -40,6 +40,23 @@
   font-display: swap;
 }
 
+/* 导入 MapleMono-SC-NF-Regular 字体 */
+@font-face{
+  font-family: "MapleMono-SC-NF-Regular";
+  src: url("/assets/font/MapleMono-SC-NF-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+
+/* 导入 MapleMono-NF-CN-Medium 字体 */
+@font-face{
+  font-family: "MapleMono-NF-CN-Medium";
+  src: url("/assets/font/MapleMono-NF-CN-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+
 /* 导入 萝莉体 第二版 字体 */
 @font-face {
   font-family: "萝莉体 第二版";

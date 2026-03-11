@@ -1,10 +1,10 @@
 ---
 title: User Space and Kernel Space
 published: 2026-02-04
-pinned: true
+pinned: false
 description: Linux操作空间的区分
 tags: [Linux, Operating System]
-category: Examples
+category: 技术
 licenseName: "CC BY 4.0"
 author: imicola
 draft: false
@@ -43,7 +43,7 @@ pubDate: 2026-3-11
 
 --- 
 
-> [!note]+  
+> [!note]
 > 当然也有可以直接在内核空间操作的方法：
 > - **编写并加载内核模块 (LKM)**：比如你写了一个 `.ko` 驱动文件，用 `insmod` 加载。这段代码会直接并入内核，拥有毁灭一切的权限。
 > - **修改内核源码**：重新编译 Linux 内核（比如你打算给 Arch Linux 换个自定义内核）

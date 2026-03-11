@@ -49,8 +49,8 @@ src/data/bangumi-data.json
 src/data/bilibili-data.json
 
 # ai agent
-.copilot/
-.claude/
+.copilot
+.claude
+.agent
 
 temp 
-# .gitignore文件的作用是，在这个文件里的文件都不会被git追踪

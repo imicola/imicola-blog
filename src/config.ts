@@ -121,18 +121,26 @@ export const siteConfig: SiteConfig = {
 			desktop: [
 				"/assets/desktop-banner/1.webp",
 				"/assets/desktop-banner/2.webp",
-				"/assets/desktop-banner/3.webp",
+				// "/assets/desktop-banner/3.webp",
 				"/assets/desktop-banner/4.webp",
 				"/assets/desktop-banner/5.webp",
 				"/assets/desktop-banner/6.webp",
+				"/assets/desktop-banner/muzimi.webp",
+				"/assets/desktop-banner/radom01.webp",
+				"/assets/desktop-banner/luckystar.webp"
 			], // 桌面横幅图片
 			mobile: [
 				"/assets/mobile-banner/1.webp",
 				"/assets/mobile-banner/2.webp",
-				"/assets/mobile-banner/3.webp",
+				// "/assets/mobile-banner/3.webp",
 				"/assets/mobile-banner/4.webp",
 				"/assets/mobile-banner/5.webp",
 				"/assets/mobile-banner/6.webp",
+				"/assets/mobile-banner/muzimi.webp",
+				"/assets/mobile-banner/radom01.webp",
+				"/assets/mobile-banner/luckystar.webp",
+				"/assets/mobile-banner/Alice.webp",
+				"/assets/mobile-banner/670.webp"
 			], // 移动横幅图片
 		}, // 使用本地横幅图片
 
@@ -140,7 +148,7 @@ export const siteConfig: SiteConfig = {
 
 		carousel: {
 			enable: true, // 为 true 时：为多张图片启用轮播。为 false 时：从数组中随机显示一张图片
-			interval: 2, // 轮播间隔时间（秒）
+			interval: 4, // 轮播间隔时间（秒）
 		},
 
 		waves: {
@@ -160,7 +168,7 @@ export const siteConfig: SiteConfig = {
 
 		homeText: {
 			enable: true, // 在主页显示自定义文本
-			title: "imicola的猫窝", // 主页横幅主标题
+			title: "imicola的猫咖", // 主页横幅主标题
 
 			subtitle: [
 				"晚上好,或者早上好",
@@ -212,9 +220,9 @@ export const siteConfig: SiteConfig = {
 		asciiFont: {
 			// 英文字体 - 优先级最高
 			// 指定为英文字体则无论字体包含多大范围，都只会保留 ASCII 字符子集
-			fontFamily: "ZenMaruGothic-Medium",
+			fontFamily: "MapleMono-SC-NF-Regular",
 			fontWeight: "400",
-			localFonts: ["ZenMaruGothic-Medium.ttf"],
+			localFonts: ["MapleMono-SC-NF-Regular.ttf"],
 			enableCompress: true, // 启用字体子集优化，减少字体文件大小
 		},
 		cjkFont: {
@@ -232,24 +240,33 @@ export const fullscreenWallpaperConfig: FullscreenWallpaperConfig = {
 		desktop: [
 			"/assets/desktop-banner/1.webp",
 			"/assets/desktop-banner/2.webp",
-			"/assets/desktop-banner/3.webp",
+			// "/assets/desktop-banner/3.webp",
 			"/assets/desktop-banner/4.webp",
 			"/assets/desktop-banner/5.webp",
 			"/assets/desktop-banner/6.webp",
+			"/assets/desktop-banner/muzimi.webp",
+			"/assets/desktop-banner/radom01.webp",
+			"/assets/desktop-banner/luckystar.webp",
+			"/assets/desktop-banner/Alice.webp"
 		], // 桌面横幅图片
 		mobile: [
 			"/assets/mobile-banner/1.webp",
 			"/assets/mobile-banner/2.webp",
-			"/assets/mobile-banner/3.webp",
+			// "/assets/mobile-banner/3.webp",
 			"/assets/mobile-banner/4.webp",
 			"/assets/mobile-banner/5.webp",
 			"/assets/mobile-banner/6.webp",
+			"/assets/mobile-banner/muzimi.webp",
+			"/assets/mobile-banner/radom01.webp",
+			"/assets/mobile-banner/luckystar.webp",
+			"/assets/mobile-banner/Alice.webp",
+			"/assets/mobile-banner/670.webp"
 		], // 移动横幅图片
 	}, // 使用本地横幅图片
 	position: "center", // 壁纸位置，等同于 object-position
 	carousel: {
 		enable: true, // 启用轮播
-		interval: 5, // 轮播间隔时间（秒）
+		interval: 8, // 轮播间隔时间（秒）
 	},
 	zIndex: -1, // 层级，确保壁纸在背景层
 	opacity: 0.8, // 壁纸透明度
@@ -351,9 +368,9 @@ export const navBarConfig: NavBarConfig = {
 };
 
 export const profileConfig: ProfileConfig = {
-	avatar: "assets/images/avatar.webp", // 相对于 /src 目录。如果以 '/' 开头，则相对于 /public 目录
+	avatar: "assets/images/nona_cut.webp", // 相对于 /src 目录。如果以 '/' 开头，则相对于 /public 目录
 	name: "imicola",
-	bio: "为自由而自由",
+	bio: "为自由而自由,为意志而意志,为道德而道德", 
 	typewriter: {
 		enable: true, // 启用个人简介打字机效果
 		speed: 80, // 打字速度（毫秒）
@@ -446,7 +463,7 @@ export const musicPlayerConfig: MusicPlayerConfig = {
 	mode: "meting", // 音乐播放器模式，可选 "local" 或 "meting"
 	meting_api:
 		"https://meting.mysqil.com/api?server=:server&type=:type&id=:id&auth=:auth&r=:r", // Meting API 地址
-	id: "14164869977", // 歌单ID
+	id: "13661967857", // 歌单ID
 	server: "netease", // 音乐源服务器。有的meting的api源支持更多平台,一般来说,netease=网易云音乐, tencent=QQ音乐, kugou=酷狗音乐, xiami=虾米音乐, baidu=百度音乐
 	type: "playlist", // 播单类型
 };

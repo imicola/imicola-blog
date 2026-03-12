@@ -112,7 +112,7 @@ export const siteConfig: SiteConfig = {
 		// "mobile" = 仅在移动端显示
 		// "desktop" = 仅在桌面端显示
 		// "both" = 在所有设备上显示
-		showModeSwitchOnMobile: "desktop",
+		showModeSwitchOnMobile: "both",
 	},
 
 	banner: {
@@ -128,8 +128,8 @@ export const siteConfig: SiteConfig = {
 				"/assets/desktop-banner/muzimi.webp",
 				"/assets/desktop-banner/radom01.webp",
 				"/assets/desktop-banner/luckystar.webp",
-				"/assets/mobile-banner/Alice.webp",
-				"/assets/mobile-banner/670.webp",
+				"/assets/desktop-banner/Alice.webp",
+				"/assets/desktop-banner/670.webp",
 			], // 桌面横幅图片
 			mobile: [
 				"/assets/mobile-banner/1.webp",
@@ -250,7 +250,7 @@ export const fullscreenWallpaperConfig: FullscreenWallpaperConfig = {
 			"/assets/desktop-banner/radom01.webp",
 			"/assets/desktop-banner/luckystar.webp",
 			"/assets/desktop-banner/Alice.webp",
-			"/assets/mobile-banner/670.webp",
+			"/assets/desktop-banner/670.webp",
 		], // 桌面横幅图片
 		mobile: [
 			"/assets/mobile-banner/1.webp",

@@ -1,15 +1,16 @@
 ---
 title: 继续在21世纪活下去
-published: 2026-03-11
+published: 2026-03-13
 pinned: false
 licenseName: "CC BY 4.0"
 tags: [杂谈]
 description: 世界仿佛在前进，又似乎在坠落
 author: imicola
+category: 杂谈
 draft: false
-date: 2026-03-11
+date: 2026-03-13
 image: "./cover.jpg"
-pubDate: 2026-3-11
+pubDate: 2026-3-13
 encrypted: true
 password: 'imicola-GUVMQ8jWZoi5KxX2'
 ---

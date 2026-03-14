@@ -1,0 +1,106 @@
+---
+import type { CollectionEntry } from "astro:content";
+import CanvasViewer from "@components/canvas/CanvasViewer.astro";
+import { getSortedPosts } from "@utils/content-utils";
+import { getPostUrlBySlug, removeFileExtension } from "@utils/url-utils";
+import MainGridLayout from "@layouts/MainGridLayout.astro";
+import { Icon } from "astro-icon/components";
+import { loadCanvasForPost } from "@/lib/canvas/loadCanvas";
+import { siteConfig } from "@/config";
+import I18nKey from "@i18n/i18nKey";
+import { i18n } from "@i18n/translation";
+
+export async function getStaticPaths() {
+	const blogEntries = await getSortedPosts();
+	return blogEntries.map((entry) => ({
+		params: { slug: removeFileExtension(entry.id) },
+		props: { entry },
+	}));
+}
+
+const { entry }: { entry: CollectionEntry<"posts"> } = Astro.props;
+const canvasData = await loadCanvasForPost(entry);
+const forceFullCanvas = {
+	...canvasData,
+	config: {
+		...canvasData.config,
+		mode: "full" as const,
+		height: Math.max(canvasData.config.height, 880),
+	},
+};
+const backToPostUrl = getPostUrlBySlug(entry.id);
+const defaultLayoutMode = siteConfig.postListLayout.defaultMode || "list";
+---
+
+<MainGridLayout title={`${entry.data.title} · ${i18n(I18nKey.canvasLabel)}`} description={entry.data.description}>
+	<script>
+		import("../../scripts/right-sidebar-layout.js");
+	</script>
+	<script is:inline define:vars={{ defaultLayoutMode }}>
+		(() => {
+			const STORAGE_KEY = "__canvas_prev_layout";
+			const getCurrentLayout = () =>
+				sessionStorage.getItem("postListLayout") ||
+				localStorage.getItem("postListLayout") ||
+				defaultLayoutMode;
+
+			const dispatchLayout = (layout) => {
+				window.dispatchEvent(
+					new CustomEvent("layoutChange", {
+						detail: { layout },
+					}),
+				);
+			};
+
+			const applyCanvasLayout = () => {
+				if (!sessionStorage.getItem(STORAGE_KEY)) {
+					sessionStorage.setItem(STORAGE_KEY, getCurrentLayout());
+				}
+				sessionStorage.setItem("postListLayout", "grid");
+				localStorage.setItem("postListLayout", "grid");
+				dispatchLayout("grid");
+			};
+
+			const restoreLayout = () => {
+				const previous = sessionStorage.getItem(STORAGE_KEY);
+				if (!previous) return;
+				sessionStorage.setItem("postListLayout", previous);
+				localStorage.setItem("postListLayout", previous);
+				dispatchLayout(previous);
+				sessionStorage.removeItem(STORAGE_KEY);
+			};
+
+			applyCanvasLayout();
+			window.addEventListener("pagehide", restoreLayout, { once: true });
+			window.addEventListener("beforeunload", restoreLayout, { once: true });
+
+			if (window.swup?.hooks) {
+				window.swup.hooks.on("visit:start", restoreLayout);
+			}
+		})();
+	</script>
+	<div class="flex w-full rounded-(--radius-large) overflow-hidden relative mb-4">
+		<div class="card-base z-10 px-4 md:px-6 pt-6 pb-4 relative w-full">
+			<div class="mb-4 flex items-center justify-between gap-3">
+				<a href={backToPostUrl} class="btn-plain rounded-lg px-3 py-2 text-sm">
+					<Icon name="material-symbols:arrow-back-rounded" class="text-lg" />
+					<span>{i18n(I18nKey.canvasBackToPost)}</span>
+				</a>
+				<a href={backToPostUrl} class="btn-plain rounded-lg px-3 py-2 text-sm">
+					<span>{entry.data.title}</span>
+					<Icon name="material-symbols:article-outline-rounded" class="text-lg" />
+				</a>
+			</div>
+
+			{
+				forceFullCanvas.shouldRender ? (
+					<CanvasViewer canvas={forceFullCanvas} className="mb-2" />
+				) : (
+					<div class="rounded-xl border border-(--line-divider) p-5 text-60">
+						{i18n(I18nKey.canvasNotConfigured)}
+					</div>
+				)
+			}
+		</div>
+	</div>
+</MainGridLayout>

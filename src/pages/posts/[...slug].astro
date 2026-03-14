@@ -14,6 +14,7 @@ import {
 	getFileDirFromPath,
 	getPostUrlBySlug,
 	removeFileExtension,
+	url,
 } from "@utils/url-utils";
 import {
 	hasCustomPermalink,
@@ -28,6 +29,12 @@ import PostMetadata from "../../components/PostMeta.astro";
 import { profileConfig, siteConfig } from "../../config";
 import { formatDateToYYYYMMDD } from "../../utils/date-utils";
 import Encryptor from "../../components/Encryptor.astro";
+import { loadCanvasForPost } from "@/lib/canvas/loadCanvas";
+import CanvasPreviewCard from "@components/canvas/CanvasPreviewCard.astro";
+
+function toSrcModuleKey(filePath: string): string {
+	return `/src/${filePath.replace(/^\/+/, "").replace(/\\/g, "/")}`;
+}
 
 export async function getStaticPaths() {
 	const blogEntries = await getSortedPosts();
@@ -95,6 +102,8 @@ export async function getStaticPaths() {
 const { entry } = Astro.props;
 const { Content, headings } = await render(entry);
 const { remarkPluginFrontmatter } = await render(entry);
+const canvasData = await loadCanvasForPost(entry);
+const canvasPageUrl = url(`/canvas/${removeFileExtension(entry.id)}/`);
 
 // Process cover image for SharePoster
 let posterCoverUrl = entry.data.image;
@@ -107,13 +116,17 @@ if (entry.data.image) {
 	);
 	if (isLocal) {
 		const basePath = getFileDirFromPath(entry.filePath || "");
-		const files = import.meta.glob<ImageMetadata>("../../**", {
-			import: "default",
-		});
-		let normalizedPath = path
+		const files = import.meta.glob<ImageMetadata>(
+			"/src/**/*.{png,jpg,jpeg,gif,webp,avif,svg,bmp,ico}",
+			{
+				import: "default",
+			},
+		);
+		const normalizedPath = path
 			.normalize(path.join("../../", basePath, entry.data.image))
+			.replace(/^\.\.[\\/]\.\.[\\/]/, "")
 			.replace(/\\/g, "/");
-		const file = files[normalizedPath];
+		const file = files[toSrcModuleKey(normalizedPath)];
 		if (file) {
 			const img = await file();
 			posterCoverUrl = img.src;
@@ -141,13 +154,17 @@ if (profileConfig.avatar) {
 		profileConfig.avatar.startsWith("data:")
 	);
 	if (isLocal) {
-		const files = import.meta.glob<ImageMetadata>("../../**", {
-			import: "default",
-		});
-		let normalizedPath = path
+		const files = import.meta.glob<ImageMetadata>(
+			"/src/**/*.{png,jpg,jpeg,gif,webp,avif,svg,bmp,ico}",
+			{
+				import: "default",
+			},
+		);
+		const normalizedPath = path
 			.normalize(path.join("../../", profileConfig.avatar))
+			.replace(/^\.\.[\\/]\.\.[\\/]/, "")
 			.replace(/\\/g, "/");
-		const file = files[normalizedPath];
+		const file = files[toSrcModuleKey(normalizedPath)];
 		if (file) {
 			const img = await file();
 			posterAvatarUrl = img.src;
@@ -295,14 +312,22 @@ const jsonLd = {
             {
                 isEncrypted ? (
                     <Encryptor password={entry.data.password}>
-                         <Markdown class="mb-6 markdown-content onload-animation">
+                        {canvasData.shouldRender && (
+                            <CanvasPreviewCard href={canvasPageUrl} sourcePath={canvasData.sourcePath} />
+                        )}
+                        <Markdown class="mb-6 markdown-content onload-animation">
                             <Content />
                         </Markdown>
                     </Encryptor>
                 ) : (
-                    <Markdown class="mb-6 markdown-content onload-animation">
-                        <Content />
-                    </Markdown>
+                    <>
+                        {canvasData.shouldRender && (
+                            <CanvasPreviewCard href={canvasPageUrl} sourcePath={canvasData.sourcePath} />
+                        )}
+                        <Markdown class="mb-6 markdown-content onload-animation">
+                            <Content />
+                        </Markdown>
+                    </>
                 )
             }
 
@@ -500,3 +525,10 @@ const jsonLd = {
         </a>
     </div>
 </MainGridLayout>
+
+
+
+
+
+
+

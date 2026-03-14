@@ -1,0 +1,34 @@
+---
+import { Icon } from "astro-icon/components";
+import I18nKey from "@i18n/i18nKey";
+import { i18n } from "@i18n/translation";
+
+interface Props {
+	href: string;
+	sourcePath?: string;
+}
+
+const { href, sourcePath } = Astro.props;
+---
+
+<a
+	href={href}
+	class="mb-6 onload-animation block rounded-xl border border-(--line-divider) p-4 bg-(--license-block-bg) hover:bg-(--btn-card-bg-hover) transition-colors"
+>
+	<div class="flex items-center justify-between gap-3">
+		<div class="flex items-center gap-3 min-w-0">
+			<div class="h-10 w-10 rounded-lg bg-(--btn-regular-bg) flex items-center justify-center text-(--primary)">
+				<Icon name="material-symbols:dashboard-rounded" class="text-2xl" />
+			</div>
+			<div class="min-w-0">
+				<p class="text-sm font-semibold text-90 truncate">
+					{i18n(I18nKey.canvasViewStandalone)}
+				</p>
+				<p class="text-xs text-50 truncate">
+					{sourcePath || i18n(I18nKey.canvasLabel)}
+				</p>
+			</div>
+		</div>
+		<Icon name="material-symbols:open-in-new-rounded" class="text-xl text-60" />
+	</div>
+</a>

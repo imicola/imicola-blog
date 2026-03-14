@@ -342,6 +342,23 @@ export const ja: Translation = {
 	[Key.shareOnSocialDescription]:
 		"この記事が役に立ったときは、ぜひ他の人に共有してください!",
 
+	// Canvas
+	[Key.canvasLabel]: "Canvas",
+	[Key.canvasViewStandalone]: "Canvas の単独ビューを開く",
+	[Key.canvasBackToPost]: "記事に戻る",
+	[Key.canvasNotConfigured]:
+		"この投稿には表示可能な Canvas が設定されていません。",
+	[Key.canvasPreviewTitle]: "Canvas プレビュー",
+	[Key.canvasFitView]: "全体表示",
+	[Key.canvasLoadFailed]: "Canvas の読み込みに失敗:",
+	[Key.canvasEmpty]: "表示可能な Canvas コンテンツがありません",
+	[Key.canvasFileLabel]: "ファイル",
+	[Key.canvasUnknownFile]: "不明なファイル",
+	[Key.canvasAssetMissing]: "アセットが存在しないか解決できません",
+	[Key.canvasUnsupported]: "未対応",
+	[Key.canvasOpenLink]: "リンクを開く",
+	[Key.canvasGroupLabel]: "グループ",
+
 	// プロフィールの統計
 	[Key.profileStatsLoading]: "統計を読み込み中...",
 	[Key.profileStatsPageViews]: "ページの閲覧",

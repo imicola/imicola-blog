@@ -2,8 +2,20 @@ import { defineCollection } from "astro:content";
 import { glob } from "astro/loaders";
 import { z } from "astro/zod";
 
+const canvasSchema = z
+	.union([
+		z.string(),
+		z.literal(false),
+		z.object({
+			src: z.string(),
+			mode: z.enum(["inline", "full"]).optional(),
+			height: z.number().int().positive().optional(),
+		}),
+	])
+	.optional();
+
 const postsCollection = defineCollection({
-	loader: glob({ pattern: "**/*.md", base: "./src/content/posts" }),
+	loader: glob({ pattern: "**/index.md", base: "./src/content/posts" }),
 	schema: z.object({
 		title: z.string(),
 		published: z.date(),
@@ -21,6 +33,9 @@ const postsCollection = defineCollection({
 		sourceLink: z.string().optional().default(""),
 		licenseName: z.string().optional().default(""),
 		licenseUrl: z.string().optional().default(""),
+
+		/* Canvas preview fields */
+		canvas: canvasSchema,
 
 		/* Page encryption fields */
 		encrypted: z.boolean().optional().default(false),

@@ -17,6 +17,10 @@ import { url } from "../../utils/url-utils";
 const { id, src, alt, position = "center", basePath = "/", loading = "lazy" } = Astro.props;
 const className = Astro.props.class;
 
+function toSrcModuleKey(filePath: string): string {
+	return `/src/${filePath.replace(/^\/+/, "").replace(/\\/g, "/")}`;
+}
+
 const isLocal = !(
 	src.startsWith("/") ||
 	src.startsWith("http") ||
@@ -30,13 +34,17 @@ const isPublic = src.startsWith("/");
 // biome-ignore lint/suspicious/noImplicitAnyLet: <check later>
 let img: ImageMetadata | undefined;
 if (isLocal) {
-	const files = import.meta.glob<ImageMetadata>("../../**", {
+	const files = import.meta.glob<ImageMetadata>(
+		"/src/**/*.{png,jpg,jpeg,gif,webp,avif,svg,bmp,ico}",
+		{
 		import: "default",
-	});
-	let normalizedPath = path
+		},
+	);
+	const normalizedPath = path
 		.normalize(path.join("../../", basePath, src))
+		.replace(/^\.\.[\\/]\.\.[\\/]/, "")
 		.replace(/\\/g, "/");
-	const file = files[normalizedPath];
+	const file = files[toSrcModuleKey(normalizedPath)];
 	if (!file) {
 		console.error(
 			`\n[ERROR] Image file not found: ${normalizedPath.replace("../../", "src/")}`,

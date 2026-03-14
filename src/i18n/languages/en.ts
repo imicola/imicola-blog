@@ -339,6 +339,23 @@ export const en: Translation = {
 	[Key.shareOnSocialDescription]:
 		"If this article helped you, please share it with others!",
 
+	// Canvas
+	[Key.canvasLabel]: "Canvas",
+	[Key.canvasViewStandalone]: "View standalone Canvas",
+	[Key.canvasBackToPost]: "Back to post",
+	[Key.canvasNotConfigured]:
+		"No renderable Canvas is configured for this post.",
+	[Key.canvasPreviewTitle]: "Canvas Preview",
+	[Key.canvasFitView]: "Fit view",
+	[Key.canvasLoadFailed]: "Canvas load failed:",
+	[Key.canvasEmpty]: "Canvas has no renderable content",
+	[Key.canvasFileLabel]: "File",
+	[Key.canvasUnknownFile]: "Unknown file",
+	[Key.canvasAssetMissing]: "Asset is missing or cannot be resolved",
+	[Key.canvasUnsupported]: "Unsupported",
+	[Key.canvasOpenLink]: "Open link",
+	[Key.canvasGroupLabel]: "Group",
+
 	// Profile Stats
 	[Key.profileStatsLoading]: "Loading stats...",
 	[Key.profileStatsPageViews]: "Page views",

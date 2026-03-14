@@ -316,6 +316,22 @@ enum I18nKey {
 	shareOnSocial = "shareOnSocial",
 	shareOnSocialDescription = "shareOnSocialDescription",
 
+	// Canvas
+	canvasLabel = "canvasLabel",
+	canvasViewStandalone = "canvasViewStandalone",
+	canvasBackToPost = "canvasBackToPost",
+	canvasNotConfigured = "canvasNotConfigured",
+	canvasPreviewTitle = "canvasPreviewTitle",
+	canvasFitView = "canvasFitView",
+	canvasLoadFailed = "canvasLoadFailed",
+	canvasEmpty = "canvasEmpty",
+	canvasFileLabel = "canvasFileLabel",
+	canvasUnknownFile = "canvasUnknownFile",
+	canvasAssetMissing = "canvasAssetMissing",
+	canvasUnsupported = "canvasUnsupported",
+	canvasOpenLink = "canvasOpenLink",
+	canvasGroupLabel = "canvasGroupLabel",
+
 	// 个人资料统计
 	profileStatsLoading = "profileStatsLoading",
 	profileStatsPageViews = "profileStatsPageViews",

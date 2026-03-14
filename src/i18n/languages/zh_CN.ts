@@ -326,6 +326,22 @@ export const zh_CN: Translation = {
 	[Key.shareOnSocialDescription]:
 		"如果这篇文章对你有帮助，欢迎分享给更多人！",
 
+	// Canvas
+	[Key.canvasLabel]: "Canvas",
+	[Key.canvasViewStandalone]: "查看独立 Canvas 视图",
+	[Key.canvasBackToPost]: "返回文章",
+	[Key.canvasNotConfigured]: "该文章未配置可渲染的 Canvas。",
+	[Key.canvasPreviewTitle]: "Canvas 预览",
+	[Key.canvasFitView]: "适配画布",
+	[Key.canvasLoadFailed]: "Canvas 加载失败:",
+	[Key.canvasEmpty]: "Canvas 暂无可渲染内容",
+	[Key.canvasFileLabel]: "文件",
+	[Key.canvasUnknownFile]: "未知文件",
+	[Key.canvasAssetMissing]: "资源不存在或无法解析",
+	[Key.canvasUnsupported]: "暂不支持",
+	[Key.canvasOpenLink]: "打开链接",
+	[Key.canvasGroupLabel]: "分组",
+
 	// 个人资料
 	[Key.profileStatsLoading]: "统计加载中...",
 	[Key.profileStatsPageViews]: "浏览量",

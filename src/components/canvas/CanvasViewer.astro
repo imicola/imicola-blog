@@ -1,0 +1,913 @@
+---
+import type { CanvasLoadResult } from "@/types/canvas";
+import I18nKey from "@i18n/i18nKey";
+import { i18n } from "@i18n/translation";
+
+interface Props {
+	canvas: CanvasLoadResult;
+	className?: string;
+}
+
+const { canvas, className = "" } = Astro.props;
+const canvasText = {
+	canvasPreviewTitle: i18n(I18nKey.canvasPreviewTitle),
+	canvasFitView: i18n(I18nKey.canvasFitView),
+	canvasLoadFailed: i18n(I18nKey.canvasLoadFailed),
+	canvasEmpty: i18n(I18nKey.canvasEmpty),
+	canvasFileLabel: i18n(I18nKey.canvasFileLabel),
+	canvasUnknownFile: i18n(I18nKey.canvasUnknownFile),
+	canvasAssetMissing: i18n(I18nKey.canvasAssetMissing),
+	canvasUnsupported: i18n(I18nKey.canvasUnsupported),
+	canvasOpenLink: i18n(I18nKey.canvasOpenLink),
+	canvasGroupLabel: i18n(I18nKey.canvasGroupLabel),
+};
+const payload = {
+	config: canvas.config,
+	data: canvas.data,
+	error: canvas.error,
+	sourcePath: canvas.sourcePath,
+	text: canvasText,
+};
+const dataScriptId = `canvas-data-${Math.random().toString(36).slice(2, 10)}`;
+const markerId = `canvas-arrow-${Math.random().toString(36).slice(2, 10)}`;
+const viewerClass =
+	canvas.config.mode === "full"
+		? "canvas-viewer canvas-viewer-full"
+		: "canvas-viewer canvas-viewer-inline";
+---
+
+<section
+	class:list={[viewerClass, className]}
+	data-canvas-viewer
+	data-canvas-json-id={dataScriptId}
+	data-canvas-marker-id={markerId}
+>
+	<div class="canvas-header">
+		<div class="canvas-title-wrap">
+			<p class="canvas-title">{canvasText.canvasPreviewTitle}</p>
+			{
+				canvas.sourcePath && (
+					<p class="canvas-subtitle" title={canvas.sourcePath}>
+						{canvas.sourcePath}
+					</p>
+				)
+			}
+		</div>
+		<button class="canvas-fit-btn" type="button" data-canvas-fit>
+			{canvasText.canvasFitView}
+		</button>
+	</div>
+
+	<div
+		class="canvas-surface"
+		style={`height: ${canvas.config.height}px;`}
+		data-canvas-surface
+	>
+		<div class="canvas-empty" data-canvas-empty>
+			{
+				canvas.error
+					? `${canvasText.canvasLoadFailed} ${canvas.error}`
+					: canvasText.canvasEmpty
+			}
+		</div>
+		<div class="canvas-stage" data-canvas-stage hidden>
+			<svg class="canvas-edge-layer" data-canvas-edges aria-hidden="true">
+				<defs>
+					<marker
+						id={markerId}
+						viewBox="0 0 10 10"
+						refX="9"
+						refY="5"
+						markerWidth="6"
+						markerHeight="6"
+						orient="auto-start-reverse"
+					>
+						<path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"></path>
+					</marker>
+				</defs>
+			</svg>
+			<div class="canvas-node-layer" data-canvas-nodes></div>
+		</div>
+	</div>
+</section>
+
+<script
+	type="application/json"
+	id={dataScriptId}
+	set:html={JSON.stringify(payload)}
+/>
+
+<script>
+	import { marked } from "marked";
+
+	const ACCENT_COLORS = {
+		"1": "var(--canvas-accent-1)",
+		"2": "var(--canvas-accent-2)",
+		"3": "var(--canvas-accent-3)",
+		"4": "var(--canvas-accent-4)",
+		"5": "var(--canvas-accent-5)",
+		"6": "var(--canvas-accent-6)",
+	};
+
+	function getSidePoint(node, side) {
+		const x = node._renderX;
+		const y = node._renderY;
+		if (side === "left") return { x, y: y + node.height / 2 };
+		if (side === "right") return { x: x + node.width, y: y + node.height / 2 };
+		if (side === "top") return { x: x + node.width / 2, y };
+		if (side === "bottom") return { x: x + node.width / 2, y: y + node.height };
+		return { x: x + node.width / 2, y: y + node.height / 2 };
+	}
+
+	function sideVector(side) {
+		if (side === "left") return { x: -1, y: 0 };
+		if (side === "right") return { x: 1, y: 0 };
+		if (side === "top") return { x: 0, y: -1 };
+		if (side === "bottom") return { x: 0, y: 1 };
+		return { x: 1, y: 0 };
+	}
+
+	function buildEdgePath(start, end, fromSide, toSide) {
+		const dx = end.x - start.x;
+		const dy = end.y - start.y;
+		const distance = Math.sqrt(dx * dx + dy * dy);
+		const tension = Math.max(30, Math.min(140, distance * 0.28));
+		const fromVec = sideVector(fromSide);
+		const toVec = sideVector(toSide);
+		const c1x = start.x + fromVec.x * tension;
+		const c1y = start.y + fromVec.y * tension;
+		const c2x = end.x - toVec.x * tension;
+		const c2y = end.y - toVec.y * tension;
+		return `M ${start.x} ${start.y} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${end.x} ${end.y}`;
+	}
+
+	function setTransform(stage, state) {
+		stage.style.transform = `translate(${state.tx}px, ${state.ty}px) scale(${state.scale})`;
+	}
+
+	function escapeHtml(input) {
+		return (input || "").replace(/[&<>"']/g, (char) => {
+			if (char === "&") return "&amp;";
+			if (char === "<") return "&lt;";
+			if (char === ">") return "&gt;";
+			if (char === '"') return "&quot;";
+			if (char === "'") return "&#39;";
+			return char;
+		});
+	}
+
+	function sanitizeUrl(rawUrl) {
+		if (typeof rawUrl !== "string") return "#";
+		const trimmed = rawUrl.trim();
+		if (!trimmed) return "#";
+		if (
+			trimmed.startsWith("/") ||
+			trimmed.startsWith("./") ||
+			trimmed.startsWith("../") ||
+			trimmed.startsWith("#")
+		) {
+			return trimmed;
+		}
+		try {
+			const parsed = new URL(trimmed, window.location.origin);
+			if (
+				parsed.protocol === "http:" ||
+				parsed.protocol === "https:" ||
+				parsed.protocol === "mailto:" ||
+				parsed.protocol === "tel:"
+			) {
+				return trimmed;
+			}
+		} catch {
+			return "#";
+		}
+		return "#";
+	}
+
+	function sanitizeHtml(input) {
+		const template = document.createElement("template");
+		template.innerHTML = input || "";
+		const allowedTags = new Set([
+			"p",
+			"br",
+			"strong",
+			"em",
+			"code",
+			"pre",
+			"h1",
+			"h2",
+			"h3",
+			"h4",
+			"h5",
+			"h6",
+			"ul",
+			"ol",
+			"li",
+			"blockquote",
+			"a",
+		]);
+		const allowedAttrs = new Set(["href", "title"]);
+		const elements = template.content.querySelectorAll("*");
+
+		for (const element of elements) {
+			const tag = element.tagName.toLowerCase();
+			if (!allowedTags.has(tag)) {
+				element.replaceWith(document.createTextNode(element.textContent || ""));
+				continue;
+			}
+
+			for (const attr of [...element.attributes]) {
+				if (!allowedAttrs.has(attr.name.toLowerCase())) {
+					element.removeAttribute(attr.name);
+				}
+			}
+
+			if (tag === "a") {
+				const safeHref = sanitizeUrl(element.getAttribute("href") || "#");
+				element.setAttribute("href", safeHref);
+				element.setAttribute("rel", "noopener noreferrer");
+				element.setAttribute("target", "_blank");
+			}
+		}
+
+		return template.innerHTML;
+	}
+
+	function normalizeMarkdownSyntax(input) {
+		const source = (input || "")
+			.split(/\r?\n/)
+			.map((line) =>
+				line
+					.replace(/^(\s{0,3}#{1,6})([^\s#])/u, "$1 $2")
+					.replace(/^(\s*[-*+])(\S)/u, "$1 $2")
+					.replace(/^(\s*\d+\.)(\S)/u, "$1 $2"),
+			)
+			.join("\n");
+
+		return source
+			.replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, "[$2]($1)")
+			.replace(/\[\[([^\]]+)\]\]/g, "[$1]($1)");
+	}
+
+	function renderMarkdownText(input) {
+		try {
+			const normalized = normalizeMarkdownSyntax(input);
+			const rendered = marked.parse(normalized, {
+				gfm: true,
+				breaks: true,
+			}) || "";
+			return typeof rendered === "string" ? sanitizeHtml(rendered) : "";
+		} catch {
+			return `<p>${escapeHtml(input || "")}</p>`;
+		}
+	}
+
+	function createNodeElement(node) {
+		const text = node._canvasText || {};
+		const i18nText = (key, fallback) =>
+			typeof text[key] === "string" && text[key].trim() !== ""
+				? text[key]
+				: fallback;
+
+		const card = document.createElement(node.type === "group" ? "section" : "article");
+		card.className = `canvas-node canvas-node-${node.type}`;
+		card.style.left = `${node._renderX}px`;
+		card.style.top = `${node._renderY}px`;
+		card.style.width = `${node.width}px`;
+		card.style.height = `${node.height}px`;
+		if (node.color && ACCENT_COLORS[node.color]) {
+			card.style.setProperty("--canvas-node-accent", ACCENT_COLORS[node.color]);
+		}
+
+		if (node.type === "text") {
+			const text = document.createElement("div");
+			text.className = "canvas-node-text";
+			text.innerHTML = renderMarkdownText(node.text || "");
+			card.appendChild(text);
+			return card;
+		}
+
+		if (node.type === "group") {
+			const label = document.createElement("h4");
+			label.className = "canvas-group-title";
+			label.textContent = node.label || i18nText("canvasGroupLabel", "Group");
+			card.appendChild(label);
+			return card;
+		}
+
+		if (node.type === "link") {
+			const anchor = document.createElement("a");
+			anchor.className = "canvas-link-card";
+			anchor.textContent =
+				node.label || node.href || i18nText("canvasOpenLink", "Open link");
+			const safeHref = sanitizeUrl(node.href || "#");
+			anchor.href = safeHref;
+			if (safeHref === "#") {
+				anchor.addEventListener("click", (event) => event.preventDefault());
+			} else {
+				anchor.target = "_blank";
+				anchor.rel = "noopener noreferrer";
+			}
+			card.appendChild(anchor);
+			return card;
+		}
+
+		if (node.type === "file") {
+			if (node.asset?.kind === "image" && node.asset.src) {
+				const anchor = document.createElement("a");
+				anchor.href = node.asset.href || node.asset.src;
+				anchor.target = "_blank";
+				anchor.rel = "noopener noreferrer";
+				anchor.className = "canvas-image-link";
+				const image = document.createElement("img");
+				image.className = "canvas-image";
+				image.src = node.asset.src;
+				image.alt = node.asset.label || node.file || "Canvas image";
+				anchor.appendChild(image);
+				card.appendChild(anchor);
+				return card;
+			}
+
+			if (node.asset?.isMarkdown && node.asset.textPreview) {
+				const markdownPreview = document.createElement("div");
+				markdownPreview.className = "canvas-node-text canvas-node-file-preview";
+				markdownPreview.innerHTML = renderMarkdownText(node.asset.textPreview);
+				card.appendChild(markdownPreview);
+				return card;
+			}
+
+			const fileCard = document.createElement("a");
+			fileCard.className = "canvas-file-card";
+			if (node.asset?.href) {
+				const safeHref = sanitizeUrl(node.asset.href);
+				fileCard.href = safeHref;
+				if (safeHref === "#") {
+					fileCard.addEventListener("click", (event) => event.preventDefault());
+				} else {
+					fileCard.target = "_blank";
+					fileCard.rel = "noopener noreferrer";
+				}
+			} else {
+				fileCard.href = "#";
+				fileCard.addEventListener("click", (event) => event.preventDefault());
+			}
+			const title = document.createElement("strong");
+			title.textContent = i18nText("canvasFileLabel", "File");
+			const name = document.createElement("span");
+			name.textContent = node.file || i18nText("canvasUnknownFile", "Unknown file");
+			fileCard.appendChild(title);
+			fileCard.appendChild(name);
+			if (node.asset?.kind === "missing") {
+				const tip = document.createElement("small");
+				tip.textContent = i18nText(
+					"canvasAssetMissing",
+					"Asset is missing or cannot be resolved",
+				);
+				fileCard.appendChild(tip);
+			}
+			card.appendChild(fileCard);
+			return card;
+		}
+
+		const unsupported = document.createElement("div");
+		unsupported.className = "canvas-file-card";
+		const unsupportedTitle = document.createElement("strong");
+		unsupportedTitle.textContent = i18nText("canvasUnsupported", "Unsupported");
+		const unsupportedType = document.createElement("span");
+		unsupportedType.textContent = node.rawType || "unknown";
+		unsupported.appendChild(unsupportedTitle);
+		unsupported.appendChild(unsupportedType);
+		card.appendChild(unsupported);
+		return card;
+	}
+
+	function initCanvasViewer(root) {
+		if (root.dataset.initialized === "true") return;
+		root.dataset.initialized = "true";
+
+		const dataScriptId = root.getAttribute("data-canvas-json-id");
+		const markerId = root.getAttribute("data-canvas-marker-id") || "canvas-arrow";
+		const payloadNode = dataScriptId ? document.getElementById(dataScriptId) : null;
+		if (!payloadNode) return;
+
+		let payload;
+		try {
+			payload = JSON.parse(payloadNode.textContent || "{}");
+		} catch {
+			return;
+		}
+
+		const surface = root.querySelector("[data-canvas-surface]");
+		const stage = root.querySelector("[data-canvas-stage]");
+		const empty = root.querySelector("[data-canvas-empty]");
+		const nodeLayer = root.querySelector("[data-canvas-nodes]");
+		const edgeLayer = root.querySelector("[data-canvas-edges]");
+		const fitButton = root.querySelector("[data-canvas-fit]");
+		if (!surface || !stage || !empty || !nodeLayer || !edgeLayer || !fitButton) return;
+
+		const data = payload?.data;
+		const text = payload?.text && typeof payload.text === "object" ? payload.text : {};
+		if (!data || !Array.isArray(data.nodes) || data.nodes.length === 0) {
+			empty.hidden = false;
+			stage.hidden = true;
+			return;
+		}
+
+		empty.hidden = true;
+		stage.hidden = false;
+		nodeLayer.innerHTML = "";
+		edgeLayer.querySelectorAll("path, text").forEach((element) => {
+			if (!element.closest("defs")) element.remove();
+		});
+
+		const padding = 80;
+		const bounds = data.bounds || { minX: 0, minY: 0, width: 800, height: 500 };
+		const originX = -bounds.minX + padding;
+		const originY = -bounds.minY + padding;
+		const contentWidth = Math.max(360, bounds.width + padding * 2);
+		const contentHeight = Math.max(220, bounds.height + padding * 2);
+
+		stage.style.width = `${contentWidth}px`;
+		stage.style.height = `${contentHeight}px`;
+		edgeLayer.setAttribute("viewBox", `0 0 ${contentWidth} ${contentHeight}`);
+		edgeLayer.setAttribute("width", `${contentWidth}`);
+		edgeLayer.setAttribute("height", `${contentHeight}`);
+
+		const nodeMap = new Map();
+		for (const node of data.nodes) {
+			const renderNode = {
+				...node,
+				_renderX: node.x + originX,
+				_renderY: node.y + originY,
+				_canvasText: text,
+			};
+			nodeMap.set(node.id, renderNode);
+			nodeLayer.appendChild(createNodeElement(renderNode));
+		}
+
+		for (const edge of data.edges || []) {
+			const fromNode = nodeMap.get(edge.fromNode);
+			const toNode = nodeMap.get(edge.toNode);
+			if (!fromNode || !toNode) continue;
+
+			const fromSide = edge.fromSide || "right";
+			const toSide = edge.toSide || "left";
+			const start = getSidePoint(fromNode, fromSide);
+			const end = getSidePoint(toNode, toSide);
+			const edgePath = buildEdgePath(start, end, fromSide, toSide);
+
+			const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+			path.setAttribute("d", edgePath);
+			path.setAttribute("class", "canvas-edge");
+			path.setAttribute("fill", "none");
+			if (edge.color && ACCENT_COLORS[edge.color]) {
+				path.style.color = ACCENT_COLORS[edge.color];
+			}
+			if (edge.toEnd === "arrow") {
+				path.setAttribute("marker-end", `url(#${markerId})`);
+			}
+			if (edge.fromEnd === "arrow") {
+				path.setAttribute("marker-start", `url(#${markerId})`);
+			}
+			edgeLayer.appendChild(path);
+
+			if (edge.label) {
+				const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+				label.setAttribute("x", `${(start.x + end.x) / 2}`);
+				label.setAttribute("y", `${(start.y + end.y) / 2 - 8}`);
+				label.setAttribute("class", "canvas-edge-label");
+				label.textContent = edge.label;
+				edgeLayer.appendChild(label);
+			}
+		}
+
+		const state = { scale: 1, tx: 0, ty: 0 };
+		const minScale = 0.25;
+		const maxScale = 3;
+		let dragging = false;
+		let activePointerId = null;
+		let dragStartX = 0;
+		let dragStartY = 0;
+		let startTx = 0;
+		let startTy = 0;
+
+		function fitView() {
+			const vw = surface.clientWidth;
+			const vh = surface.clientHeight;
+			if (!vw || !vh) return;
+			const scale = Math.max(minScale, Math.min(maxScale, Math.min(vw / contentWidth, vh / contentHeight) * 0.985));
+			state.scale = scale;
+			state.tx = (vw - contentWidth * scale) / 2;
+			state.ty = (vh - contentHeight * scale) / 2;
+			setTransform(stage, state);
+		}
+
+		fitButton.addEventListener("click", fitView);
+		surface.addEventListener(
+			"wheel",
+			(event) => {
+				event.preventDefault();
+				const rect = surface.getBoundingClientRect();
+				const px = event.clientX - rect.left;
+				const py = event.clientY - rect.top;
+				const zoom = Math.exp(-event.deltaY * 0.0015);
+				const nextScale = Math.max(minScale, Math.min(maxScale, state.scale * zoom));
+				const ratio = nextScale / state.scale;
+				state.tx = px - (px - state.tx) * ratio;
+				state.ty = py - (py - state.ty) * ratio;
+				state.scale = nextScale;
+				setTransform(stage, state);
+			},
+			{ passive: false },
+		);
+
+		const releaseDrag = () => {
+			dragging = false;
+			activePointerId = null;
+			surface.classList.remove("is-dragging");
+		};
+
+		surface.addEventListener("pointerdown", (event) => {
+			if (event.button !== 0) return;
+			if (event.target instanceof Element && event.target.closest("a, button")) {
+				return;
+			}
+			dragging = true;
+			activePointerId = event.pointerId;
+			dragStartX = event.clientX;
+			dragStartY = event.clientY;
+			startTx = state.tx;
+			startTy = state.ty;
+			surface.classList.add("is-dragging");
+			surface.setPointerCapture(event.pointerId);
+		});
+
+		surface.addEventListener("pointermove", (event) => {
+			if (!dragging || event.pointerId !== activePointerId) return;
+			state.tx = startTx + (event.clientX - dragStartX);
+			state.ty = startTy + (event.clientY - dragStartY);
+			setTransform(stage, state);
+		});
+
+		surface.addEventListener("pointerup", (event) => {
+			if (event.pointerId !== activePointerId) return;
+			releaseDrag();
+		});
+		surface.addEventListener("pointercancel", (event) => {
+			if (event.pointerId !== activePointerId) return;
+			releaseDrag();
+		});
+		surface.addEventListener("lostpointercapture", releaseDrag);
+
+		const resizeObserver = new ResizeObserver(() => fitView());
+		resizeObserver.observe(surface);
+		fitView();
+	}
+
+	function initAllCanvasViewers() {
+		document.querySelectorAll("[data-canvas-viewer]").forEach((root) => {
+			initCanvasViewer(root);
+		});
+	}
+
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", initAllCanvasViewers);
+	} else {
+		initAllCanvasViewers();
+	}
+	document.addEventListener("swup:page:view", initAllCanvasViewers);
+</script>
+
+<style is:global>
+	.canvas-viewer {
+		--canvas-bg: color-mix(in oklab, var(--card-bg) 90%, var(--page-bg) 10%);
+		--canvas-card: color-mix(in oklab, var(--card-bg) 97%, white 3%);
+		--canvas-card-muted: color-mix(in oklab, var(--card-bg) 93%, var(--page-bg) 7%);
+		--canvas-border: color-mix(in oklab, var(--line-divider) 70%, transparent);
+		--canvas-text: color-mix(in oklab, currentColor 90%, transparent);
+		--canvas-edge: color-mix(in oklab, currentColor 40%, transparent);
+		--canvas-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+		--canvas-accent-1: #ef4444;
+		--canvas-accent-2: #22c55e;
+		--canvas-accent-3: #3b82f6;
+		--canvas-accent-4: #a855f7;
+		--canvas-accent-5: #f59e0b;
+		--canvas-accent-6: #06b6d4;
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		padding: 1rem;
+		border-radius: calc(var(--radius-large) + 0.3rem);
+		border: 1px solid var(--canvas-border);
+		background: var(--canvas-card-muted);
+	}
+
+	.canvas-viewer-full {
+		width: min(1280px, 100% + 7rem);
+		max-width: calc(100vw - 1.5rem);
+		margin-left: auto;
+		margin-right: auto;
+	}
+
+	.canvas-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+	}
+
+	.canvas-title {
+		margin: 0;
+		font-size: 2rem;
+		line-height: 1;
+		font-weight: 700;
+		color: var(--canvas-text);
+	}
+
+	.canvas-subtitle {
+		margin: 0.22rem 0 0;
+		font-size: 0.85rem;
+		opacity: 0.72;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		max-width: 46ch;
+	}
+
+	.canvas-fit-btn {
+		border: 1px solid var(--canvas-border);
+		border-radius: 0.75rem;
+		padding: 0.5rem 0.82rem;
+		background: var(--canvas-card);
+		color: var(--canvas-text);
+		font-size: 0.82rem;
+		font-weight: 600;
+		cursor: pointer;
+	}
+
+	.canvas-fit-btn:hover {
+		background: var(--btn-card-bg-hover);
+	}
+
+	.canvas-surface {
+		position: relative;
+		overflow: hidden;
+		border-radius: 1rem;
+		border: 1px solid var(--canvas-border);
+		background-color: var(--canvas-bg);
+		background-image:
+			radial-gradient(circle, color-mix(in oklab, var(--canvas-edge) 30%, transparent) 1px, transparent 1px),
+			radial-gradient(circle, color-mix(in oklab, var(--canvas-edge) 16%, transparent) 1px, transparent 1px);
+		background-size: 24px 24px, 24px 24px;
+		background-position: 0 0, 12px 12px;
+		touch-action: none;
+		cursor: grab;
+		user-select: none;
+		min-height: 68vh;
+	}
+
+	.canvas-surface.is-dragging {
+		cursor: grabbing;
+	}
+
+	.canvas-stage {
+		position: absolute;
+		left: 0;
+		top: 0;
+		transform-origin: 0 0;
+	}
+
+	.canvas-empty {
+		position: absolute;
+		inset: 0;
+		display: grid;
+		place-items: center;
+		padding: 1rem;
+		text-align: center;
+		font-size: 0.9rem;
+		color: var(--canvas-text);
+		opacity: 0.76;
+	}
+
+	.canvas-viewer .canvas-edge-layer,
+	.canvas-viewer .canvas-node-layer {
+		position: absolute;
+		left: 0;
+		top: 0;
+	}
+
+	.canvas-viewer .canvas-edge {
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 1.8;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		color: var(--canvas-edge);
+	}
+
+	.canvas-viewer .canvas-edge-label {
+		font-size: 11px;
+		fill: var(--canvas-text);
+		opacity: 0.85;
+		paint-order: stroke;
+		stroke: var(--canvas-bg);
+		stroke-width: 4;
+	}
+
+	.canvas-viewer .canvas-node {
+		position: absolute;
+		z-index: 2;
+		box-sizing: border-box;
+		border-radius: 0.5rem;
+		border: 1px solid
+			color-mix(
+				in oklab,
+				var(--canvas-node-accent, var(--canvas-border)) 45%,
+				var(--canvas-border) 55%
+			);
+		background: var(--canvas-card);
+		box-shadow: var(--canvas-shadow);
+		color: var(--canvas-text);
+		overflow: hidden;
+	}
+
+	.canvas-viewer .canvas-node-text {
+		height: 100%;
+		overflow: auto;
+		margin: 0;
+		padding: 0.65rem 0.72rem;
+		font-family: var(--font-sans, inherit);
+		font-size: 0.78rem;
+		line-height: 1.5;
+		word-break: break-word;
+		scrollbar-width: none;
+		-ms-overflow-style: none;
+	}
+
+	.canvas-viewer .canvas-node-text::-webkit-scrollbar {
+		width: 0;
+		height: 0;
+	}
+
+	.canvas-viewer .canvas-node-text p,
+	.canvas-viewer .canvas-node-text h1,
+	.canvas-viewer .canvas-node-text h2,
+	.canvas-viewer .canvas-node-text h3,
+	.canvas-viewer .canvas-node-text h4,
+	.canvas-viewer .canvas-node-text h5,
+	.canvas-viewer .canvas-node-text h6,
+	.canvas-viewer .canvas-node-text ul,
+	.canvas-viewer .canvas-node-text ol,
+	.canvas-viewer .canvas-node-text pre,
+	.canvas-viewer .canvas-node-text blockquote {
+		margin: 0.25rem 0;
+	}
+
+	.canvas-viewer .canvas-node-text h1,
+	.canvas-viewer .canvas-node-text h2,
+	.canvas-viewer .canvas-node-text h3,
+	.canvas-viewer .canvas-node-text h4,
+	.canvas-viewer .canvas-node-text h5,
+	.canvas-viewer .canvas-node-text h6 {
+		line-height: 1.35;
+		font-weight: 700;
+	}
+
+	.canvas-viewer .canvas-node-text h1 { font-size: 1rem; }
+	.canvas-viewer .canvas-node-text h2 { font-size: 0.95rem; }
+	.canvas-viewer .canvas-node-text h3 { font-size: 0.9rem; }
+	.canvas-viewer .canvas-node-text h4,
+	.canvas-viewer .canvas-node-text h5,
+	.canvas-viewer .canvas-node-text h6 { font-size: 0.84rem; }
+
+	.canvas-viewer .canvas-node-text ul,
+	.canvas-viewer .canvas-node-text ol {
+		padding-left: 1.1rem;
+	}
+
+	.canvas-viewer .canvas-node-text li {
+		margin: 0.12rem 0;
+	}
+
+	.canvas-viewer .canvas-node-text code {
+		padding: 0.05rem 0.2rem;
+		border-radius: 0.2rem;
+		background: color-mix(in oklab, var(--canvas-bg) 65%, transparent);
+		font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+		font-size: 0.72rem;
+	}
+
+	.canvas-viewer .canvas-node-text pre {
+		padding: 0.45rem;
+		overflow: auto;
+		border-radius: 0.35rem;
+		background: color-mix(in oklab, var(--canvas-bg) 78%, transparent);
+	}
+
+	.canvas-viewer .canvas-node-file-preview {
+		height: 100%;
+		overflow: auto;
+		scrollbar-width: none;
+		-ms-overflow-style: none;
+	}
+
+	.canvas-viewer .canvas-node-file-preview::-webkit-scrollbar {
+		width: 0;
+		height: 0;
+	}
+
+	.canvas-viewer .canvas-node-group {
+		z-index: 1;
+		overflow: visible;
+		background: color-mix(in oklab, var(--canvas-card) 20%, transparent);
+		border-style: solid;
+	}
+
+	.canvas-viewer .canvas-group-title {
+		position: absolute;
+		left: 0.65rem;
+		top: -0.62rem;
+		z-index: 4;
+		margin: 0;
+		padding: 0.1rem 0.42rem;
+		border-radius: 0.32rem;
+		background: var(--canvas-bg);
+		border: 1px solid var(--canvas-border);
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+		font-size: 0.72rem;
+		font-weight: 700;
+		opacity: 0.9;
+		pointer-events: none;
+	}
+
+	.canvas-viewer .canvas-link-card,
+	.canvas-viewer .canvas-file-card {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		height: 100%;
+		padding: 0.65rem;
+		font-size: 0.78rem;
+		text-decoration: none;
+		color: inherit;
+		word-break: break-word;
+	}
+
+	.canvas-viewer .canvas-link-card:hover,
+	.canvas-viewer .canvas-file-card:hover {
+		background: color-mix(in oklab, var(--btn-plain-bg-hover) 60%, transparent);
+	}
+
+	.canvas-viewer .canvas-image-link {
+		display: block;
+		width: 100%;
+		height: 100%;
+	}
+
+	.canvas-viewer .canvas-image {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+		background: color-mix(in oklab, var(--page-bg) 70%, transparent);
+	}
+
+	.canvas-viewer .canvas-file-card strong {
+		font-size: 0.72rem;
+		opacity: 0.72;
+	}
+
+	.canvas-viewer .canvas-file-card small {
+		font-size: 0.7rem;
+		opacity: 0.66;
+	}
+
+	:root.dark .canvas-viewer {
+		--canvas-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+		--canvas-accent-1: #f87171;
+		--canvas-accent-2: #4ade80;
+		--canvas-accent-3: #60a5fa;
+		--canvas-accent-4: #c084fc;
+		--canvas-accent-5: #fbbf24;
+		--canvas-accent-6: #22d3ee;
+	}
+
+	@media (max-width: 768px) {
+		.canvas-viewer {
+			padding: 0.75rem;
+		}
+		.canvas-viewer-full {
+			width: 100%;
+			max-width: 100%;
+		}
+		.canvas-subtitle {
+			max-width: 24ch;
+		}
+		.canvas-title {
+			font-size: 1.7rem;
+		}
+		.canvas-surface {
+			min-height: 58vh;
+		}
+	}
+</style>

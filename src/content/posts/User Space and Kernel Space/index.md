@@ -3,7 +3,7 @@ title: User Space and Kernel Space
 published: 2026-02-04
 pinned: false
 description: Linux操作空间的区分
-tags: [Linux, Operating System]
+tags: [Linux, OS]
 category: 技术
 licenseName: "CC BY 4.0"
 author: imicola

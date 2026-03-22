@@ -55,7 +55,7 @@ export const friendsData: FriendItem[] = [
 	{
 		id: 6,
 		title: "奇奇莫拉の日记本",
-		imgurl: "https://qiqimora.cn/_astro/avatar.qk8rO0hW_Z1jY9Jj.webp",
+		imgurl: "https://qiqimora.cn/_astro/avatar.qk8rO0hW_1zxmdw.webp",
 		desc: "咱是奇奇莫拉，今天也不想出门qwq",
 		siteurl: "https://qiqimora.cn/",
 		tags: ["Friend"],

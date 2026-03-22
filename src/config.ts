@@ -23,7 +23,7 @@ const SITE_LANG = "zh_CN"; // 语言代码，例如：'en', 'zh_CN', 'ja' 等。
 const SITE_TIMEZONE = 8; //设置你的网站时区 from -12 to 12 default in UTC+8
 export const siteConfig: SiteConfig = {
 	title: "imicola",
-	subtitle: "猫窝，进来有可乐喝",
+	subtitle: "人,进来",
 	siteURL: "https://imicola.com/", // 请替换为你的站点URL，以斜杠结尾
 	siteStartDate: "2026-03-10", // 站点开始运行日期，用于站点统计组件计算运行天数
 
@@ -450,8 +450,8 @@ export const shareConfig: ShareConfig = {
 };
 
 export const announcementConfig: AnnouncementConfig = {
-	title: "", // 公告标题，填空使用i18n字符串Key.announcement
-	content: "喵喵喵喵喵喵喵喵", // 公告内容
+	title: "今天干了什么", // 公告标题，填空使用i18n字符串Key.announcement
+	content: "计算机网络大本书，堂堂连载ing;这段时间会尽快把导读写完，这本大书真难啃QAQ，然后会对一些细致的点做补充;目前是先写了1,2章的导读", // 公告内容
 	closable: true, // 允许用户关闭公告
 	link: {
 		enable: true, // 启用链接

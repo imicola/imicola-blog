@@ -451,7 +451,7 @@ export const shareConfig: ShareConfig = {
 
 export const announcementConfig: AnnouncementConfig = {
 	title: "今天干了什么", // 公告标题，填空使用i18n字符串Key.announcement
-	content: "计算机网络大本书，堂堂连载ing;这段时间会尽快把导读写完，这本大书真难啃QAQ，然后会对一些细致的点做补充;3，4，5章的都差不多搞定了，还有个第六章，七八章看心情喵", // 公告内容
+	content: "计算机网络这是什么？算了，先学docker吧（），docker技术系列堂堂连载ing", // 公告内容
 	closable: true, // 允许用户关闭公告
 	link: {
 		enable: true, // 启用链接

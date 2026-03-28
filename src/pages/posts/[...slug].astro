@@ -4,6 +4,7 @@ import { render } from "astro:content";
 import path from "node:path";
 import Comment from "@components/comment/index.astro";
 import License from "@components/misc/License.astro";
+import AiParticipation from "@components/misc/AiParticipation.astro";
 import Markdown from "@components/misc/Markdown.astro";
 import SharePoster from "@components/misc/SharePoster.svelte";
 import I18nKey from "@i18n/i18nKey";
@@ -292,6 +293,12 @@ const jsonLd = {
                     )
                 }
             </div>
+
+            {typeof entry.data.aiLevel === "number" && (
+                <div class="onload-animation">
+                    <AiParticipation level={entry.data.aiLevel as 0 | 1 | 2 | 3} />
+                </div>
+            )}
 
             <!-- always show cover as long as it has one -->
 

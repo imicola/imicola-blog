@@ -10,6 +10,7 @@ import type { CollectionEntry } from "astro:content";
 import { render } from "astro:content";
 import Comment from "@components/comment/index.astro";
 import License from "@components/misc/License.astro";
+import AiParticipation from "@components/misc/AiParticipation.astro";
 import Markdown from "@components/misc/Markdown.astro";
 import PasswordProtection from "@components/PasswordProtection.astro";
 import I18nKey from "@i18n/i18nKey";
@@ -198,6 +199,12 @@ const jsonLd = {
                     )
                 }
             </div>
+
+            {typeof entry.data.aiLevel === "number" && (
+                <div class="onload-animation">
+                    <AiParticipation level={entry.data.aiLevel as 0 | 1 | 2 | 3} />
+                </div>
+            )}
 
             {
                 entry.data.image && siteConfig.showCoverInContent && (

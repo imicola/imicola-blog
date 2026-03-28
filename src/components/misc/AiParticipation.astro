@@ -1,0 +1,42 @@
+---
+import { Icon } from "astro-icon/components";
+
+interface Props {
+	level: 0 | 1 | 2 | 3;
+	className?: string;
+}
+
+const { level, className = "" } = Astro.props as Props;
+
+const levelTextMap: Record<Props["level"], string> = {
+	0: "无 AI 参与",
+	1: "人工主体，AI 润色修改",
+	2: "人工大纲，AI 补充内容",
+	3: "几乎完全由 AI 生成",
+};
+
+const levelDescriptionMap: Record<Props["level"], string> = {
+	0: "本文内容、结构与措辞均由作者独立完成，未使用 AI 工具。",
+	1: "正文由作者完成，AI 主要用于措辞优化、语句调整与语言打磨。",
+	2: "由作者提供主题和大纲，AI 在此基础上补充内容并完善细节。",
+	3: "文章框架与正文内容主要由 AI 生成，作者进行了审核与必要修订。",
+};
+---
+
+<div class:list={["mb-4 p-4 rounded-xl bg-(--license-block-bg) border border-(--line-divider)", className]}>
+	<div class="flex items-start gap-3">
+		<div class="h-9 w-9 rounded-lg bg-(--primary) flex items-center justify-center shrink-0">
+			<Icon name="material-symbols:auto-awesome-rounded" class="text-base text-black/75 dark:text-white/75" />
+		</div>
+		<div class="min-w-0 flex-1">
+			<div class="flex flex-wrap items-center gap-2 mb-1">
+				<span class="text-black/85 dark:text-white/85 text-sm font-semibold">AI参与度</span>
+				<span class="px-2 py-1 rounded-md text-xs font-bold bg-(--btn-regular-bg) text-(--btn-content)">
+					Lv.{level}/3
+				</span>
+				<span class="text-xs text-black/60 dark:text-white/60">{levelTextMap[level]}</span>
+			</div>
+			<p class="text-sm text-black/70 dark:text-white/70 leading-relaxed">{levelDescriptionMap[level]}</p>
+		</div>
+	</div>
+</div>

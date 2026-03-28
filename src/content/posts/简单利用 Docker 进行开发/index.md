@@ -13,6 +13,7 @@ image: ./cover.png
 encrypted: false
 password: imicola
 date: 2026-03-27
+aiLevel: 0
 ---
 # 说明
 

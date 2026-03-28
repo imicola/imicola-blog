@@ -33,6 +33,7 @@ const postsCollection = defineCollection({
 		sourceLink: z.string().optional().default(""),
 		licenseName: z.string().optional().default(""),
 		licenseUrl: z.string().optional().default(""),
+		aiLevel: z.number().int().min(0).max(3).optional(),
 
 		/* Canvas preview fields */
 		canvas: canvasSchema,

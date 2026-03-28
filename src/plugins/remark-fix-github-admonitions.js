@@ -1,12 +1,56 @@
 import { visit } from "unist-util-visit";
 
-const GITHUB_ALERT_DECLARATION_REGEX = /^\s*\[\!(?<type>\w+)\]\s*$/;
-const GITHUB_ALERT_TYPES = ["NOTE", "TIP", "IMPORTANT", "WARNING", "CAUTION"];
+const GITHUB_ALERT_DECLARATION_REGEX =
+	/^\s*\[\!(?<type>[^\]\s]+)\](?<collapse>[+-])?(?<rest>.*)$/;
+
+const KNOWN_ALERT_TYPE_TO_DIRECTIVE = {
+	note: "note",
+	tip: "tip",
+	important: "important",
+	warning: "warning",
+	caution: "caution",
+};
 
 function parseGithubAlertDeclaration(text) {
 	const match = text.match(GITHUB_ALERT_DECLARATION_REGEX);
-	const type = match?.groups?.type?.toUpperCase();
-	return GITHUB_ALERT_TYPES.includes(type) ? type : null;
+	const rawType = match?.groups?.type?.trim();
+	if (!rawType) return null;
+
+	const normalizedType = rawType.toLowerCase();
+	const collapseToken = match?.groups?.collapse;
+	const titleText = match?.groups?.rest?.trim() || null;
+	const directiveName =
+		KNOWN_ALERT_TYPE_TO_DIRECTIVE[normalizedType] ?? "note";
+
+	let collapseState = null;
+	if (collapseToken === "-") {
+		collapseState = "collapsed";
+	} else if (collapseToken === "+") {
+		collapseState = "expanded";
+	}
+
+	return {
+		rawType,
+		directiveName,
+		titleText,
+		collapseState,
+	};
+}
+
+function getInlineText(node) {
+	if (!node) return "";
+	if (node.type === "text" || node.type === "inlineCode") {
+		return node.value || "";
+	}
+	if (Array.isArray(node.children)) {
+		return node.children.map(getInlineText).join("");
+	}
+	return "";
+}
+
+function getParagraphText(paragraphNode) {
+	if (!paragraphNode || !Array.isArray(paragraphNode.children)) return "";
+	return paragraphNode.children.map(getInlineText).join("");
 }
 
 export function remarkFixGithubAdmonitions() {
@@ -17,53 +61,47 @@ export function remarkFixGithubAdmonitions() {
 			const firstChild = node.children[0];
 			if (firstChild?.type !== "paragraph") return;
 
-			const firstParagraphChild = firstChild.children[0];
-			if (firstParagraphChild?.type !== "text") return;
+			const firstParagraphText = getParagraphText(firstChild);
+			if (!firstParagraphText) return;
 
-			const possibleTypeDeclaration =
-				firstParagraphChild.value.split("\n")[0];
+			const possibleTypeDeclaration = firstParagraphText.split("\n")[0];
 			if (!possibleTypeDeclaration) return;
 
-			const type = parseGithubAlertDeclaration(possibleTypeDeclaration);
-			if (!type) return;
+			const declaration =
+				parseGithubAlertDeclaration(possibleTypeDeclaration);
+			if (!declaration) return;
 
-			const typeToDirectiveName = {
-				NOTE: "note",
-				TIP: "tip",
-				IMPORTANT: "important",
-				WARNING: "warning",
-				CAUTION: "caution",
-			};
 
-			const directiveName = typeToDirectiveName[type];
-			if (!directiveName) return;
+			const remainingFirstParagraph = firstParagraphText
+				.split("\n")
+				.slice(1)
+				.join("\n");
 
-			const textNodeChildren =
-				firstParagraphChild.value.split("\n").length > 1
-					? [
-							{
-								type: "text",
-								value: firstParagraphChild.value
-									.split("\n")
-									.slice(1)
-									.join("\n"),
-							},
-						]
-					: [];
-
-			const paragraphChildren = [
-				...textNodeChildren,
-				...firstChild.children.slice(1),
-			];
+			const paragraphChildren = remainingFirstParagraph
+				? [{ type: "text", value: remainingFirstParagraph }]
+				: [];
 
 			const alertParagraphChildren =
 				paragraphChildren.length > 0
 					? [{ type: "paragraph", children: paragraphChildren }]
 					: [];
 
+			const attributes = {
+				"alert-type": declaration.rawType,
+			};
+
+			if (declaration.titleText) {
+				attributes.title = declaration.titleText;
+			}
+
+			if (declaration.collapseState) {
+				attributes["collapse-state"] = declaration.collapseState;
+			}
+
 			const directive = {
 				type: "containerDirective",
-				name: directiveName,
+				name: declaration.directiveName,
+				attributes,
 				children: [
 					...alertParagraphChildren,
 					...node.children.slice(1),

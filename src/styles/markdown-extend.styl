@@ -20,6 +20,37 @@
         mask-position: center
         mask-repeat: no-repeat
         transform: translateY(-0.0625rem)
+
+    &.admonition-collapsible
+      .bdm-title.is-collapsible
+        cursor: pointer
+        user-select: none
+        outline: none
+
+        &:after
+          content: ""
+          display: inline-block
+          width: 0.45rem
+          height: 0.45rem
+          margin-left: auto
+          border-right: 2px solid currentColor
+          border-bottom: 2px solid currentColor
+          transform: rotate(45deg)
+          transition: transform 0.2s ease
+
+      &:not(.is-collapsed)
+        .bdm-title.is-collapsible
+          margin-bottom: -.5rem
+
+    &.admonition-collapsible.is-collapsed
+      > :not(.bdm-title)
+        display: none
+
+      .bdm-title.is-collapsible
+        margin-bottom: 0
+
+        &:after
+          transform: rotate(-45deg)
     &.bdm-tip
       .bdm-title
         color: var(--admonitions-color-tip)

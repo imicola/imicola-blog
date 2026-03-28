@@ -45,8 +45,7 @@ cd getting-started-todo-app
 docker compose watch
 ```
 
->[!note]
-> 什么是 docker compose ?
+>[!note]+ 什么是 docker compose ?
 > 
 > Docker Compose 是一个用于定义和运行多容器 Docker 应用程序的工具。它使用 YAML 文件来配置应用程序的服务、网络和卷等，然后通过一个简单的命令就可以启动整个应用程序的所有服务。
 > 

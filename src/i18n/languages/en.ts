@@ -369,4 +369,6 @@ export const en: Translation = {
 	// Layout Switch Button
 	[Key.switchToGridMode]: "Switch to Grid Mode",
 	[Key.switchToListMode]: "Switch to List Mode",
+
+	[Key.latex]: "LaTeX Reference",
 };

@@ -1,0 +1,55 @@
+---
+import { getEntry, render } from "astro:content";
+import Markdown from "@components/misc/Markdown.astro";
+import MainGridLayout from "../layouts/MainGridLayout.astro";
+import "../styles/latex-doc.css";
+
+const latexPost = await getEntry("spec", "latex");
+if (!latexPost) {
+	throw new Error("LaTeX cheat sheet content not found");
+}
+const { Content } = await render(latexPost);
+const title = "LaTeX 数学符号速查表";
+---
+<MainGridLayout title={title}>
+	<div
+		class="flex w-full rounded-(--radius-large) overflow-hidden relative min-h-32"
+	>
+		<div class="card-base z-10 px-6 py-6 relative w-full">
+			<div class="flex flex-col items-start justify-center mb-6">
+				<h1
+					class="text-3xl font-bold text-90 mb-2 relative before:w-1 before:h-8 before:rounded-md before:bg-(--primary) before:absolute before:top-1/2 before:-translate-y-1/2 before:-left-4"
+				>
+					{title}
+				</h1>
+				<p class="text-sm text-50 mt-1 ml-1">
+					点击表格中的代码即可复制 LaTeX 命令
+				</p>
+			</div>
+			<div id="latex-content" class="latex-doc-content">
+				<Markdown class="mt-2">
+					<Content />
+				</Markdown>
+			</div>
+		</div>
+	</div>
+</MainGridLayout>
+
+<script>
+	function initCopy() {
+		const content = document.getElementById("latex-content");
+		if (!content) return;
+		content.addEventListener("click", (e: MouseEvent) => {
+			const target = e.target as HTMLElement;
+			if (!target.matches("td code")) return;
+			const text = target.textContent || "";
+			navigator.clipboard.writeText(text).then(() => {
+				target.classList.add("copied");
+				setTimeout(() => target.classList.remove("copied"), 800);
+			});
+		});
+	}
+	initCopy();
+	document.addEventListener("astro:after-swap", initCopy);
+	document.addEventListener("swup:content:replace", initCopy);
+</script>

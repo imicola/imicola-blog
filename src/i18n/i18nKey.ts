@@ -345,6 +345,9 @@ enum I18nKey {
 	// 布局切换按钮
 	switchToGridMode = "switchToGridMode",
 	switchToListMode = "switchToListMode",
+
+	// LaTeX 速查
+	latex = "latex",
 }
 
 export default I18nKey;

@@ -365,6 +365,11 @@ export const navBarConfig: NavBarConfig = {
 					url: "/timeline/",
 					icon: "material-symbols:timeline",
 				},
+				{
+					name: "LaTeX",
+					url: "/latex/",
+					icon: "material-symbols:function",
+				},
 			],
 		},
 	],

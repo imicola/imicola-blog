@@ -355,4 +355,7 @@ export const zh_CN: Translation = {
 	// 布局切换按钮
 	[Key.switchToGridMode]: "切换到网格模式",
 	[Key.switchToListMode]: "切换到列表模式",
+
+	// LaTeX 速查
+	[Key.latex]: "LaTeX 速查",
 };

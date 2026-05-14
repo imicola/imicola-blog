@@ -1,0 +1,20 @@
+.latex-doc-content .custom-md td code {
+	cursor: pointer;
+	padding: 0.15rem 0.4rem;
+	border-radius: 0.25rem;
+	background: var(--inline-code-bg);
+	transition:
+		background-color 0.2s,
+		color 0.2s;
+	user-select: all;
+}
+
+.latex-doc-content .custom-md td code:hover {
+	background: var(--primary);
+	color: white;
+}
+
+.latex-doc-content .custom-md td code.copied {
+	background: oklch(0.65 0.18 var(--hue));
+	color: white;
+}

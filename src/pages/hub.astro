@@ -1,0 +1,132 @@
+---
+import MainGridLayout from "../layouts/MainGridLayout.astro";
+
+const title = "工具箱";
+const subtitle = "学习工具与速查资源索引";
+
+const tools = [
+	{
+		name: "计算机网络复习闪卡",
+		description:
+			"164 道计网考点闪卡，覆盖选择题、填空题、简答题和计算大题，支持分类浏览与随机练习",
+		url: "/flashcards/",
+		icon: "material-symbols:style",
+		tags: ["164 题", "闪卡翻转", "KaTeX 公式"],
+		accent: "from-violet-500 to-purple-600",
+		iconBg: "bg-violet-500/10 dark:bg-violet-900/20",
+		iconColor: "text-violet-600 dark:text-violet-400",
+		border: "hover:border-violet-500/40",
+	},
+	{
+		name: "LaTeX 数学符号速查表",
+		description:
+			"常用 LaTeX 数学符号与排版命令速查，点击代码即可复制，覆盖希腊字母、运算符、矩阵等",
+		url: "/latex/",
+		icon: "material-symbols:function",
+		tags: ["一键复制", "符号速查"],
+		accent: "from-blue-500 to-cyan-600",
+		iconBg: "bg-blue-500/10 dark:bg-blue-900/20",
+		iconColor: "text-blue-600 dark:text-blue-400",
+		border: "hover:border-blue-500/40",
+	},
+];
+---
+
+<MainGridLayout title={title} description={subtitle}>
+	<script>
+		import("../scripts/right-sidebar-layout.js");
+		import { loadIconify } from "../utils/icon-loader";
+		loadIconify().catch((error) =>
+			console.error("Failed to load Iconify:", error),
+		);
+	</script>
+	<div
+		class="flex w-full rounded-(--radius-large) overflow-hidden relative min-h-32"
+	>
+		<div class="card-base z-10 px-9 py-6 relative w-full">
+			<div class="flex flex-col items-start justify-center mb-8">
+				<h1
+					class="text-4xl font-bold text-90 mb-2 relative before:w-1 before:h-8 before:rounded-md before:bg-(--primary) before:absolute before:top-1/2 before:-translate-y-1/2 before:-left-4"
+				>
+					{title}
+				</h1>
+				<p class="text-lg text-60">
+					{subtitle}
+				</p>
+			</div>
+
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+				{tools.map((tool) => (
+					<a
+						href={tool.url}
+						class={`group relative rounded-(--radius-large) border border-(--line-divider) ${tool.border} bg-(--card-bg) overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1`}
+					>
+						<div
+							class={`h-1.5 bg-gradient-to-r ${tool.accent}`}
+						>
+						</div>
+						<div class="p-6">
+							<div class="flex items-start gap-4 mb-4">
+								<div
+									class={`shrink-0 w-14 h-14 rounded-xl ${tool.iconBg} ${tool.iconColor} flex items-center justify-center transition-transform duration-300 group-hover:scale-110`}
+								>
+									<iconify-icon
+										icon={tool.icon}
+										width="32"
+										height="32"
+									></iconify-icon>
+								</div>
+								<div class="flex-1 min-w-0">
+									<h3 class="text-xl font-bold text-90 mb-1">
+										{tool.name}
+									</h3>
+									<p class="text-sm text-60 leading-relaxed">
+										{tool.description}
+									</p>
+								</div>
+							</div>
+							<div class="flex flex-wrap gap-2 mb-4">
+								{tool.tags.map((tag) => (
+									<span
+										class="px-2 py-0.5 text-xs rounded-md bg-(--btn-plain-bg-hover) text-(--btn-content) opacity-70"
+									>
+										{tag}
+									</span>
+								))}
+							</div>
+							<div
+								class="flex items-center gap-1 text-sm font-semibold text-(--primary) opacity-70 group-hover:opacity-100 transition-opacity"
+							>
+								进入
+								<svg
+									class="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2.5"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+								>
+									<line x1="5" y1="12" x2="19" y2="12"
+									><polyline points="12 5 19 12 12 19"
+									></polyline></line>
+								</svg>
+							</div>
+						</div>
+					</a>
+				))}
+			</div>
+
+			<div
+				class="mt-8 flex items-center justify-center gap-2 text-sm text-50 opacity-50"
+			>
+				<iconify-icon
+					icon="material-symbols:lightbulb-outline"
+					width="18"
+					height="18"
+				></iconify-icon>
+				更多工具持续添加中
+			</div>
+		</div>
+	</div>
+</MainGridLayout>

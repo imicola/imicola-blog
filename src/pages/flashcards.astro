@@ -1,0 +1,65 @@
+---
+import MainGridLayout from "../layouts/MainGridLayout.astro";
+import FlashcardApp from "../components/misc/FlashcardApp.svelte";
+import {
+	chapters,
+	sections,
+	flashcardData,
+} from "../data/flashcards";
+
+const title = "计算机网络复习闪卡";
+const cardCount = flashcardData.length;
+---
+
+<MainGridLayout title={title}>
+	<div
+		class="flex w-full rounded-(--radius-large) overflow-hidden relative min-h-32"
+	>
+		<div class="card-base z-10 px-6 py-6 relative w-full">
+			<div class="flex flex-col items-start justify-center mb-6">
+				<div class="flex items-center justify-between w-full">
+					<h1
+						class="text-3xl font-bold text-90 mb-2 relative before:w-1 before:h-8 before:rounded-md before:bg-(--primary) before:absolute before:top-1/2 before:-translate-y-1/2 before:-left-4"
+					>
+						{title}
+					</h1>
+					<div class="flex gap-2 shrink-0">
+						<a
+							href="/assets/计算机网络复习.pdf"
+							target="_blank"
+							rel="noopener"
+							class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-(--line-divider) bg-(--card-bg) text-(--btn-content) transition-all hover:bg-(--btn-plain-bg-hover)"
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12c5-9 15-9 20 0"/><path d="M2 12c5 9 15 9 20 0"/><circle cx="12" cy="12" r="3"/></svg>
+							查看 PDF
+						</a>
+						<a
+							href="/assets/计算机网络复习.pdf"
+							download="计算机网络复习.pdf"
+							class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-(--primary) text-white transition-all hover:opacity-85"
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+							下载
+						</a>
+					</div>
+				</div>
+				<p class="text-sm text-50 mt-1 ml-1">
+					共 {cardCount} 张闪卡 · 选择题 / 填空题 / 简答题 / 计算大题 · 点击卡片翻转查看答案
+				</p>
+				<p class="text-xs text-50 mt-0.5 ml-1 opacity-60">
+					如果你感觉没看明白，可以查看或下载 PDF 原件获得更好的体验
+				</p>
+			</div>
+			<FlashcardApp
+				client:only="svelte"
+				cards={flashcardData}
+				chapters={chapters}
+				sections={sections}
+			>
+				<div slot="fallback" class="flex items-center justify-center py-20 opacity-50">
+					<p>加载闪卡中...</p>
+				</div>
+			</FlashcardApp>
+		</div>
+	</div>
+</MainGridLayout>

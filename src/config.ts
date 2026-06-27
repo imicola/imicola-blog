@@ -351,6 +351,11 @@ export const navBarConfig: NavBarConfig = {
 			icon: "material-symbols:more-horiz",
 			children: [
 				{
+					name: "Hub",
+					url: "/hub/",
+					icon: "material-symbols:apps",
+				},
+				{
 					name: "Projects",
 					url: "/projects/",
 					icon: "material-symbols:work",
@@ -456,12 +461,12 @@ export const shareConfig: ShareConfig = {
 
 export const announcementConfig: AnnouncementConfig = {
 	title: "今天干了什么", // 公告标题，填空使用i18n字符串Key.announcement
-	content: "计算机网络这是什么？算了，先学docker吧（），docker技术系列堂堂连载ing", // 公告内容
+	content: "计算机网络好难，简单做了一个小测试网站，可以用用喵", // 公告内容
 	closable: true, // 允许用户关闭公告
 	link: {
 		enable: true, // 启用链接
-		text: "Learn More", // 链接文本
-		url: "/about/", // 链接 URL
+		text: "点我进入", // 链接文本
+		url: "/flashcards/", // 链接 URL
 		external: false, // 内部链接
 	},
 };

@@ -1,1 +1,3 @@
 *.js linguist-language=astro
+*.pdf binary
+*.png binary

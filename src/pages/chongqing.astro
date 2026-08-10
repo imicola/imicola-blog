@@ -1,0 +1,1479 @@
+---
+import {
+	foods,
+	modules,
+	pois,
+	sources,
+	tripDays,
+	weather,
+} from "../data/chongqing";
+
+const foodAreas = ["全部", "解放碑", "两路口", "观音桥", "南岸", "武隆"];
+const foodKinds = ["全部", ...new Set(foods.map((item) => item[2]))];
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>重庆旅行控制台 · 6人自由行</title>
+		<meta
+			name="description"
+			content="2026年8月14日至22日，六名大学生的模块化重庆旅行决策系统。"
+		/>
+		<meta property="og:title" content="重庆旅行控制台" />
+		<meta property="og:description" content="不是赶路，是随时选路。" />
+		<meta
+			property="og:image"
+			content="https://imicola.com/chongqing/og.png"
+		/>
+		<meta property="og:type" content="website" />
+		<meta name="twitter:card" content="summary_large_image" />
+	</head>
+	<body>
+		<header class="cq-header">
+			<a class="cq-brand" href="#top"
+				><b>CQ</b><span>重庆旅行控制台</span></a
+			>
+			<button class="cq-menu" type="button" aria-expanded="false"
+				>菜单</button
+			>
+			<nav aria-label="专题导航">
+				<a href="#today">今天怎么玩</a><a href="#modules">模块库</a><a
+					href="#pois">POI情报</a
+				><a href="#food">吃什么</a><a href="#specials">专项</a><a
+					href="#guide">总控</a
+				><a href="/hub/">返回Hub</a>
+			</nav>
+		</header>
+
+		<main id="top">
+			<section class="cq-hero">
+				<div class="cq-hero-copy">
+					<p class="cq-eyebrow">
+						6 STUDENTS · 9 DAYS · ONE HOME BASE
+					</p>
+					<h1>不是赶路。<br /><span>是随时选路。</span></h1>
+					<p>
+						2026.08.14—08.22 · 重庆六人自由行<br />吃 ≈ 城市空间
+						&gt; 出片 &gt; 夜景 &gt; 自然
+					</p>
+					<div class="cq-hero-actions">
+						<a href="#today">开始今天的决策</a><a
+							class="secondary"
+							href="/chongqing/chongqing-travel-guide.pdf"
+							download>下载离线PDF</a>
+					</div>
+				</div>
+				<div class="cq-facts">
+					<div>
+						<span>住宿基地</span><b>富城大厦 · 北区路14号</b><small
+							>地图搜“富城大厦（一号桥）”</small>
+					</div>
+					<div>
+						<span>软预算</span><b>1,000元 / 人</b><small
+							>住宿与深渝大交通不计</small>
+					</div>
+					<div>
+						<span>去程</span><b>G2944 · 深圳北 08:21</b><small
+							>重庆西15:11；以本人12306车票为准</small>
+					</div>
+					<div>
+						<span>返程 · 8/22</span><b>重庆北16:52 / 16:56</b><small
+							>Z334（5人）· D2255（1人）</small>
+					</div>
+				</div>
+				<div class="cq-live" aria-live="polite">
+					<span id="live-label">北京时间识别中</span><b
+						id="live-title">正在定位今日模式</b
+					><p id="live-note">
+						加载后会自动匹配出发前、行程日或返程后的状态。
+					</p>
+				</div>
+			</section>
+
+			<section class="cq-mode-strip">
+				<div>
+					<b>38℃模式</b><span>13:00–17:00不走长线，户外压到傍晚</span>
+				</div><div>
+					<b>雨天模式</b><span>博物馆/商圈/民宿；雷雨不靠江</span>
+				</div><div>
+					<b>腿废模式</b><span
+						>单模块+两段网约车，恢复是在保护明天</span>
+				</div><div>
+					<b>桌游模式</b><span
+						>外卖、补水、空调；21:00再决定夜宵</span>
+				</div>
+			</section>
+
+			<section class="cq-section cq-router" id="today">
+				<div class="cq-heading">
+					<span>01</span><div>
+						<p class="cq-eyebrow">DAILY ROUTER</p><h2>
+							今天怎么玩？
+						</h2><p>
+							日期只给默认值，真实天气、体力和兴趣拥有最终决定权。
+						</p>
+					</div>
+				</div>
+				<div class="cq-choices">
+					<fieldset data-choice="weather">
+						<legend>天气</legend><div>
+							<button class="active">炎热</button><button
+								>正常</button
+							><button>下雨</button>
+						</div>
+					</fieldset>
+					<fieldset data-choice="energy">
+						<legend>体力</legend><div>
+							<button>满血</button><button class="active"
+								>正常</button
+							><button>腿废了</button>
+						</div>
+					</fieldset>
+					<fieldset data-choice="interest">
+						<legend>兴趣</legend><div>
+							<button class="active">吃</button><button
+								>CityWalk</button
+							><button>拍照</button><button>自然</button><button
+								>夜景</button
+							><button>摆烂</button>
+						</div>
+					</fieldset>
+				</div>
+				<div class="cq-date-context">
+					<b id="router-day">非行程日 · 手动试算</b><span
+						id="router-note"
+						>正式旅行日会按北京时间载入当天的默认天气与兴趣。</span>
+				</div>
+				<div class="cq-rec-head">
+					<b id="rec-label">TOP 3</b><button
+						id="shuffle"
+						type="button">换一组同分选项</button>
+				</div>
+				<div class="cq-recs" id="recommendations"></div>
+			</section>
+
+			<section class="cq-section" id="weather">
+				<div class="cq-heading">
+					<span>02</span><div>
+						<p class="cq-eyebrow">WEATHER WINDOW</p><h2>
+							天气不是背景，是路由器
+						</h2><p>
+							2026-08-11快照；出发前24–48小时必须重查，武隆必须独立复核。
+						</p>
+					</div>
+				</div>
+				<div class="cq-weather">
+					{
+						weather.map((day) => (
+							<article>
+								<>
+									<div>
+										<>
+											<b>{day[0]}</b>
+											<span>{day[1]}</span>
+										</>
+									</div>
+									<strong>{day[2]}</strong>
+									<p>{day[3]}</p>
+								</>
+							</article>
+						))
+					}
+				</div>
+			</section>
+
+			<section class="cq-section" id="modules">
+				<div class="cq-heading">
+					<span>03</span><div>
+						<p class="cq-eyebrow">12 SWAPPABLE MODULES</p><h2>
+							模块库，不是死日程
+						</h2><p>每个模块都能独立成立，也能按天气和体力互换。</p>
+					</div>
+				</div>
+				<div class="cq-module-grid">
+					{
+						modules.map((item, index) => (
+							<article id={item.id}>
+								<>
+									<div class="cq-number">
+										{String(index + 1).padStart(2, "0")}
+									</div>
+									<p class="cq-eyebrow">{item.area}</p>
+									<h3>{item.title}</h3>
+									<p>{item.route}</p>
+									<div class="cq-metrics">
+										<>
+											<span>{item.time}</span>
+											<span>{item.duration}</span>
+											<span>{item.cost}</span>
+										</>
+									</div>
+									<div class="cq-rating">
+										<>
+											<span>
+												体力 {"★".repeat(item.effort)}
+											</span>
+											<span>
+												出片 {"★".repeat(item.photo)}
+											</span>
+											<span>
+												吃饭 {"★".repeat(item.food)}
+											</span>
+										</>
+									</div>
+									<footer>
+										<>
+											<b>放弃条件</b>
+											<span>{item.skip}</span>
+										</>
+									</footer>
+								</>
+							</article>
+						))
+					}
+				</div>
+			</section>
+
+			<section class="cq-section" id="pois">
+				<div class="cq-heading">
+					<span>04</span><div>
+						<p class="cq-eyebrow">17 FIELD CARDS</p><h2>
+							现在值不值得去？
+						</h2><p>
+							S是强推荐，A是值得，B是条件式选择。标记仅保存在当前设备。
+						</p>
+					</div>
+				</div>
+				<div class="cq-pois">
+					{
+						pois.map((poi, index) => (
+							<article>
+								<>
+									<header>
+										<>
+											<span
+												class={`cq-grade grade-${String(poi[1]).toLowerCase()}`}
+											>
+												{poi[1]}
+											</span>
+											<div>
+												<>
+													<small>
+														POI{" "}
+														{String(
+															index + 1,
+														).padStart(2, "0")}
+													</small>
+													<h3>{poi[0]}</h3>
+												</>
+											</div>
+											<button
+												class="cq-save"
+												data-poi={String(poi[0])}
+											>
+												未标记
+											</button>
+										</>
+									</header>
+									<p class="cq-verdict">{poi[2]}</p>
+									<dl>
+										<>
+											<div>
+												<>
+													<dt>入口/走法</dt>
+													<dd>{poi[3]}</dd>
+												</>
+											</div>
+											<div>
+												<>
+													<dt>费用</dt>
+													<dd>{poi[4]}</dd>
+												</>
+											</div>
+											<div>
+												<>
+													<dt>停留</dt>
+													<dd>{poi[5]}</dd>
+												</>
+											</div>
+										</>
+									</dl>
+								</>
+							</article>
+						))
+					}
+				</div>
+			</section>
+
+			<section class="cq-section cq-food" id="food">
+				<div class="cq-heading">
+					<span>05</span><div>
+						<p class="cq-eyebrow">
+							FOOD CONTROL ROOM · 12 PICKS
+						</p><h2>吃什么，比去哪吃重要</h2><p>
+							先看位置，再看口味、预算和等待成本。人均是参考预算，不是承诺菜单价。
+						</p>
+					</div>
+				</div>
+				<div class="cq-food-rules">
+					<article>
+						<b>火锅 · 约540–720元/桌</b><p>
+							10–12份菜起步，毛肚/鸭肠/嫩肉/黄喉选4–5份，素菜4–5份。
+						</p>
+					</article><article>
+						<b>江湖菜 · 约420–660元/桌</b><p>
+							4道主菜+2道蔬菜+汤或主食，避免六道全是红油干锅。
+						</p>
+					</article><article>
+						<b>小吃 · 约180–360元/队</b><p>
+							每人买一种，全队分食；同类碳水只留一个。
+						</p>
+					</article><article>
+						<b>不辣成员 · 先保底</b><p>
+							先点确定不辣的主食/汤，再讨论共享菜；逐道确认。
+						</p>
+					</article>
+				</div>
+				<div class="cq-food-filter">
+					<div data-filter="area">
+						<b>区域</b>{
+							foodAreas.map((area, index) => (
+								<button
+									class:list={[{ active: index === 0 }]}
+									data-value={area}
+								>
+									{area}
+								</button>
+							))
+						}
+					</div><div data-filter="kind">
+						<b>品类</b>{
+							foodKinds.map((kind, index) => (
+								<button
+									class:list={[{ active: index === 0 }]}
+									data-value={kind}
+								>
+									{kind}
+								</button>
+							))
+						}
+					</div>
+				</div>
+				<p class="cq-count" id="food-count">
+					显示 {foods.length} / {foods.length} 个候选
+				</p>
+				<div class="cq-food-cards">
+					{
+						foods.map((item) => (
+							<article data-area={item[1]} data-kind={item[2]}>
+								<>
+									<header>
+										<>
+											<span
+												class={`cq-grade grade-${String(item[3]).toLowerCase()}`}
+											>
+												{item[3]}
+											</span>
+											<div>
+												<>
+													<small>
+														{item[1]} · {item[2]}
+													</small>
+													<h3>{item[0]}</h3>
+												</>
+											</div>
+											<strong>{item[4]}</strong>
+										</>
+									</header>
+									<div class="cq-verdict">
+										<>
+											<b>本团评价</b>
+											<p>{item[6]}</p>
+										</>
+									</div>
+									<dl>
+										<>
+											<div>
+												<>
+													<dt>位置</dt>
+													<dd>{item[5]}</dd>
+												</>
+											</div>
+											<div>
+												<>
+													<dt>点单/排队</dt>
+													<dd>{item[7]}</dd>
+												</>
+											</div>
+										</>
+									</dl>
+									<footer>
+										<a
+											href={item[8]}
+											target="_blank"
+											rel="noreferrer"
+										>
+											打开地图 ↗
+										</a>
+									</footer>
+								</>
+							</article>
+						))
+					}
+				</div>
+			</section>
+
+			<section class="cq-section" id="specials">
+				<div class="cq-heading">
+					<span>06</span><div>
+						<p class="cq-eyebrow">SPECIAL OPERATIONS</p><h2>
+							复杂项目怎么嵌入路线
+						</h2>
+					</div>
+				</div>
+				<div class="cq-specials">
+					<article>
+						<p class="cq-eyebrow">CABLEWAY</p><h3>
+							长江索道
+						</h3><strong>单程30元 · 往返50元</strong><p>
+							南岸模块结束后南→北最顺。索道是跨江体验，不是观景台；等待超过45分钟就坐轨道。
+						</p>
+					</article><article>
+						<p class="cq-eyebrow">RIVER</p><h3>
+							两江小渡B线
+						</h3><strong>弹子石18:30 · 15元</strong><p>
+							便宜但接驳成本要计入。雷雨、大风、水位异常时停航；它不是传统朝天门夜游。
+						</p>
+					</article><article>
+						<p class="cq-eyebrow">WULONG</p><h3>天生三桥</h3><strong
+							>学生Pass 98.5元 · 二消另计</strong
+						><p>
+							天气、往返票、景区接驳三项都稳才启动。若只选一个景点，优先天生三桥，不硬塞地缝。
+						</p>
+					</article>
+				</div>
+			</section>
+
+			<section class="cq-section" id="guide">
+				<div class="cq-heading">
+					<span>07</span><div>
+						<p class="cq-eyebrow">FIELD GUIDE</p><h2>
+							九天骨架与返程硬缓冲
+						</h2>
+					</div>
+				</div>
+				<div class="cq-days">
+					{
+						tripDays.map((day) => (
+							<article>
+								<>
+									<b>{day.short}</b>
+									<strong>{day.title}</strong>
+									<p>{day.note}</p>
+								</>
+							</article>
+						))
+					}
+				</div>
+				<div class="cq-return">
+					<div>
+						<p class="cq-eyebrow">8/22 RETURN DAY</p><h3>
+							13:30前离开住宿地
+						</h3><p>
+							轻午饭 → 取行李 → 重庆北站。五人Z334
+							16:52去深圳东，一人D2255
+							16:56去成都东。不要在返程日安排景点。
+						</p>
+					</div><a
+						href="/chongqing/chongqing-travel-guide.pdf"
+						download>下载16页离线旅行手册</a>
+				</div>
+			</section>
+
+			<section class="cq-section cq-sources">
+				<div class="cq-heading">
+					<span>08</span><div>
+						<p class="cq-eyebrow">SOURCE LOG</p><h2>
+							关键来源与复核
+						</h2><p>
+							最后核验日期：2026-08-11。营业、票价、天气和交通均以出行当日官方渠道为准。
+						</p>
+					</div>
+				</div>
+				<div>
+					{
+						sources.map((source) => (
+							<a
+								href={source[1]}
+								target="_blank"
+								rel="noreferrer"
+							>
+								<>
+									<span>{source[0]}</span>
+									<b>查看原文 ↗</b>
+								</>
+							</a>
+						))
+					}
+				</div>
+			</section>
+		</main>
+
+		<footer class="cq-footer">
+			<div>
+				<b>重庆旅行控制台</b><p>
+					体验密度 &gt; 景点数量 · 顺路 &gt; 网红排名
+				</p>
+			</div><a href="/hub/">返回 imicola Hub →</a>
+		</footer>
+
+		<script is:inline define:vars={{ modules, tripDays }}>
+			const state = {
+				weather: "炎热",
+				energy: "正常",
+				interest: "吃",
+				nonce: 0,
+			};
+			const dateKey = () =>
+				new Intl.DateTimeFormat("en-CA", {
+					timeZone: "Asia/Shanghai",
+					year: "numeric",
+					month: "2-digit",
+					day: "2-digit",
+				}).format(new Date());
+			const distance = (from, to) =>
+				Math.round(
+					(Date.parse(`${to}T00:00:00Z`) -
+						Date.parse(`${from}T00:00:00Z`)) /
+						86400000,
+				);
+			const today = dateKey();
+			const activeDay = tripDays.find((day) => day.iso === today);
+			const before = distance(today, tripDays[0].iso);
+			const after = today > tripDays[tripDays.length - 1].iso;
+			document.querySelector("#live-label").textContent = activeDay
+				? `${activeDay.day} · ${activeDay.short}`
+				: before > 0
+					? `距出发 ${before} 天`
+					: after
+						? "行程已结束"
+						: "行程准备期";
+			document.querySelector("#live-title").textContent =
+				activeDay?.title ||
+				(before > 0
+					? "出发前核验模式"
+					: after
+						? "复盘与收藏"
+						: "等待出发");
+			document.querySelector("#live-note").textContent =
+				activeDay?.note ||
+				(before > 0
+					? "车票、天气、武隆与餐厅只做最后核验，不再堆叠新景点。"
+					: "页面仍可用于手动试算模块。");
+			if (activeDay) {
+				state.weather = activeDay.weather;
+				state.interest = activeDay.interest;
+				document.querySelector("#router-day").textContent =
+					`${activeDay.day} · ${activeDay.title}`;
+				document.querySelector("#router-note").textContent =
+					`已用 ${activeDay.short} 预案初始化；下方选项仍可手动覆盖。`;
+			}
+			const score = (item) => {
+				let value = 0;
+				if (item.weather.includes(state.weather)) value += 5;
+				if (item.energy.includes(state.energy)) value += 5;
+				if (item.interests.includes(state.interest)) value += 7;
+				if (state.weather === "炎热")
+					value += Math.max(0, 4 - item.sun);
+				if (state.weather === "下雨")
+					value +=
+						item.rain === "适合"
+							? 5
+							: item.rain === "可用"
+								? 1
+								: -8;
+				if (state.energy === "腿废了")
+					value += Math.max(0, 4 - item.effort) * 2;
+				if (state.interest === "拍照") value += item.photo;
+				if (state.interest === "吃") value += item.food;
+				if (state.interest === "摆烂" && item.id === "recovery")
+					value += 10;
+				return value + (state.nonce ? Math.random() * 1.8 : 0);
+			};
+			const renderRecommendations = () => {
+				const picks = [...modules]
+					.map((item) => ({ item, score: score(item) }))
+					.sort((a, b) => b.score - a.score)
+					.slice(0, 3);
+				document.querySelector("#rec-label").textContent =
+					`TOP 3 / ${state.weather} · ${state.energy} · ${state.interest}`;
+				document.querySelector("#recommendations").innerHTML = picks
+					.map(
+						({ item }, index) =>
+							`<article><div class="cq-number">0${index + 1}</div><p class="cq-eyebrow">${item.area}</p><h3>${item.title}</h3><p>${item.route}</p><div class="cq-metrics"><span>${item.time}</span><span>${item.duration}</span><span>${item.cost}</span></div><footer><b>放弃条件</b><span>${item.skip}</span></footer><a href="#${item.id}">查看模块细节 →</a></article>`,
+					)
+					.join("");
+			};
+			document.querySelectorAll("[data-choice]").forEach((field) => {
+				const key = field.dataset.choice;
+				field.querySelectorAll("button").forEach((button) => {
+					button.classList.toggle(
+						"active",
+						button.textContent === state[key],
+					);
+					button.addEventListener("click", () => {
+						state[key] = button.textContent;
+						field
+							.querySelectorAll("button")
+							.forEach((item) => item.classList.remove("active"));
+						button.classList.add("active");
+						renderRecommendations();
+					});
+				});
+			});
+			document.querySelector("#shuffle").addEventListener("click", () => {
+				state.nonce += 1;
+				renderRecommendations();
+			});
+			renderRecommendations();
+
+			const foodState = { area: "全部", kind: "全部" };
+			const filterFood = () => {
+				let visible = 0;
+				document
+					.querySelectorAll(".cq-food-cards > article")
+					.forEach((card) => {
+						const showArea =
+							foodState.area === "全部" ||
+							card.dataset.area.includes(foodState.area);
+						const showKind =
+							foodState.kind === "全部" ||
+							card.dataset.kind === foodState.kind;
+						card.hidden = !(showArea && showKind);
+						if (!card.hidden) visible += 1;
+					});
+				document.querySelector("#food-count").textContent =
+					`显示 ${visible} / ${document.querySelectorAll(".cq-food-cards > article").length} 个候选`;
+			};
+			document.querySelectorAll("[data-filter]").forEach((row) =>
+				row.querySelectorAll("button").forEach((button) =>
+					button.addEventListener("click", () => {
+						foodState[row.dataset.filter] = button.dataset.value;
+						row.querySelectorAll("button").forEach((item) =>
+							item.classList.remove("active"),
+						);
+						button.classList.add("active");
+						filterFood();
+					}),
+				),
+			);
+
+			document.querySelectorAll(".cq-save").forEach((button) => {
+				const key = `cq-poi-${button.dataset.poi}`;
+				const values = ["未标记", "想去", "去过了"];
+				let current = Number(localStorage.getItem(key) || 0);
+				button.textContent = values[current];
+				button.dataset.state = current;
+				button.addEventListener("click", () => {
+					current = (current + 1) % values.length;
+					localStorage.setItem(key, String(current));
+					button.textContent = values[current];
+					button.dataset.state = current;
+				});
+			});
+			const menu = document.querySelector(".cq-menu");
+			const nav = document.querySelector(".cq-header nav");
+			menu.addEventListener("click", () => {
+				const open = nav.classList.toggle("open");
+				menu.setAttribute("aria-expanded", String(open));
+			});
+			nav.querySelectorAll("a").forEach((link) =>
+				link.addEventListener("click", () => {
+					nav.classList.remove("open");
+					menu.setAttribute("aria-expanded", "false");
+				}),
+			);
+		</script>
+	</body>
+</html>
+
+<style is:global>
+	:root {
+		--ink: #121212;
+		--paper: #f7f1e6;
+		--red: #f04b22;
+		--blue: #1f5cff;
+		--muted: #5d5b56;
+		--line: #cfc7b8;
+		--max: 1180px;
+	}
+	* {
+		box-sizing: border-box;
+	}
+	html {
+		scroll-behavior: smooth;
+	}
+	body {
+		margin: 0;
+		color: var(--ink);
+		background: var(--paper);
+		font-family:
+			Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+	}
+	a {
+		color: inherit;
+		text-decoration: none;
+	}
+	button {
+		font: inherit;
+	}
+	.cq-header {
+		position: sticky;
+		top: 0;
+		z-index: 40;
+		height: 64px;
+		border-bottom: 1px solid var(--ink);
+		background: rgba(247, 241, 230, 0.96);
+		display: flex;
+		align-items: center;
+		padding: 0 max(20px, calc((100vw - var(--max)) / 2));
+	}
+	.cq-brand {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		font-weight: 900;
+	}
+	.cq-brand b {
+		width: 34px;
+		height: 34px;
+		display: grid;
+		place-items: center;
+		color: white;
+		background: var(--red);
+	}
+	.cq-header nav {
+		margin-left: auto;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		gap: 24px;
+		font-size: 12px;
+		font-weight: 800;
+	}
+	.cq-header nav a {
+		height: 100%;
+		display: grid;
+		place-items: center;
+		border-bottom: 3px solid transparent;
+	}
+	.cq-header nav a:hover {
+		border-color: var(--red);
+	}
+	.cq-menu {
+		display: none;
+		margin-left: auto;
+		border: 1px solid var(--ink);
+		background: transparent;
+		padding: 7px 10px;
+	}
+	.cq-hero {
+		min-height: 700px;
+		background: var(--ink);
+		color: white;
+		display: grid;
+		grid-template-columns: 1.35fr 0.85fr;
+		grid-template-rows: 1fr auto;
+		position: relative;
+	}
+	.cq-hero::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		opacity: 0.16;
+		background-size: 48px 48px;
+		background-image:
+			linear-gradient(90deg, transparent 47px, #fff 48px),
+			linear-gradient(transparent 47px, #fff 48px);
+	}
+	.cq-hero-copy {
+		padding: 95px max(28px, calc((100vw - var(--max)) / 2));
+		padding-right: 40px;
+		position: relative;
+	}
+	.cq-eyebrow {
+		margin: 0 0 14px;
+		color: var(--red);
+		font-size: 11px;
+		line-height: 1.3;
+		font-weight: 900;
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
+	}
+	.cq-hero h1 {
+		margin: 0;
+		font-size: clamp(64px, 9vw, 132px);
+		line-height: 0.82;
+		letter-spacing: -0.09em;
+	}
+	.cq-hero h1 span {
+		color: var(--red);
+	}
+	.cq-hero-copy > p:last-of-type {
+		margin: 32px 0;
+		color: #d8d2c6;
+		font-size: 18px;
+		line-height: 1.7;
+	}
+	.cq-hero-actions {
+		display: flex;
+		gap: 12px;
+	}
+	.cq-hero-actions a,
+	.cq-return a {
+		padding: 13px 18px;
+		background: var(--red);
+		color: white;
+		font-weight: 900;
+		border: 1px solid var(--red);
+	}
+	.cq-hero-actions a.secondary {
+		background: transparent;
+		border-color: white;
+	}
+	.cq-facts {
+		padding: 95px max(28px, calc((100vw - var(--max)) / 2));
+		padding-left: 40px;
+		display: grid;
+		align-content: center;
+		gap: 0;
+		position: relative;
+		border-left: 1px solid #555;
+	}
+	.cq-facts div {
+		padding: 18px 0;
+		border-bottom: 1px solid #555;
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+	}
+	.cq-facts span,
+	.cq-live span {
+		color: var(--red);
+		font-size: 11px;
+		font-weight: 900;
+		letter-spacing: 0.12em;
+	}
+	.cq-facts b {
+		font-size: 20px;
+	}
+	.cq-facts small {
+		color: #aaa;
+	}
+	.cq-live {
+		grid-column: 1/-1;
+		min-height: 170px;
+		position: relative;
+		padding: 28px max(28px, calc((100vw - var(--max)) / 2));
+		border-top: 1px solid #555;
+		display: grid;
+		grid-template-columns: 180px 1fr 1fr;
+		align-items: center;
+		gap: 30px;
+		background: var(--blue);
+	}
+	.cq-live span {
+		color: white;
+	}
+	.cq-live b {
+		font-size: 34px;
+		letter-spacing: -0.04em;
+	}
+	.cq-live p {
+		margin: 0;
+		line-height: 1.6;
+	}
+	.cq-mode-strip {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		border-bottom: 1px solid var(--ink);
+	}
+	.cq-mode-strip div {
+		min-height: 120px;
+		padding: 22px;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		border-right: 1px solid var(--ink);
+	}
+	.cq-mode-strip b {
+		font-size: 18px;
+	}
+	.cq-mode-strip span {
+		color: var(--muted);
+		font-size: 13px;
+	}
+	.cq-section {
+		max-width: var(--max);
+		margin: 0 auto;
+		padding: 110px 0;
+	}
+	.cq-heading {
+		display: grid;
+		grid-template-columns: 80px 1fr;
+		margin-bottom: 45px;
+	}
+	.cq-heading > span {
+		font-size: 44px;
+		font-weight: 900;
+		color: var(--red);
+	}
+	.cq-heading h2 {
+		margin: 0;
+		font-size: clamp(42px, 6vw, 76px);
+		letter-spacing: -0.07em;
+		line-height: 0.95;
+	}
+	.cq-heading div > p:last-child {
+		max-width: 720px;
+		color: var(--muted);
+	}
+	.cq-router {
+		max-width: none;
+		padding-left: max(24px, calc((100vw - var(--max)) / 2));
+		padding-right: max(24px, calc((100vw - var(--max)) / 2));
+		background: var(--ink);
+		color: white;
+	}
+	.cq-choices {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 20px;
+	}
+	.cq-choices fieldset {
+		margin: 0;
+		border: 1px solid #666;
+		padding: 18px;
+	}
+	.cq-choices legend {
+		padding: 0 8px;
+		font-weight: 900;
+	}
+	.cq-choices fieldset div {
+		display: flex;
+		gap: 8px;
+		flex-wrap: wrap;
+	}
+	.cq-choices button,
+	.cq-food-filter button {
+		padding: 8px 11px;
+		border: 1px solid currentColor;
+		background: transparent;
+		color: inherit;
+		cursor: pointer;
+	}
+	.cq-choices button.active {
+		background: var(--red);
+		border-color: var(--red);
+		color: white;
+	}
+	.cq-date-context {
+		margin-top: 20px;
+		padding: 16px;
+		border: 1px solid #666;
+		display: flex;
+		justify-content: space-between;
+		gap: 20px;
+	}
+	.cq-date-context span {
+		color: #aaa;
+	}
+	.cq-rec-head {
+		margin: 35px 0 14px;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+	.cq-rec-head button {
+		background: transparent;
+		color: white;
+		border: 0;
+		text-decoration: underline;
+		cursor: pointer;
+	}
+	.cq-recs {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		border-left: 1px solid #666;
+		border-top: 1px solid #666;
+	}
+	.cq-recs article {
+		padding: 24px;
+		min-height: 410px;
+		display: flex;
+		flex-direction: column;
+		border-right: 1px solid #666;
+		border-bottom: 1px solid #666;
+	}
+	.cq-recs h3,
+	.cq-module-grid h3 {
+		margin: 6px 0 12px;
+		font-size: 26px;
+		letter-spacing: -0.04em;
+	}
+	.cq-recs article > p:not(.cq-eyebrow) {
+		color: #bbb;
+	}
+	.cq-number {
+		font-size: 38px;
+		font-weight: 900;
+		color: var(--red);
+	}
+	.cq-metrics {
+		display: flex;
+		gap: 8px;
+		flex-wrap: wrap;
+		margin: 16px 0;
+	}
+	.cq-metrics span {
+		padding: 5px 8px;
+		border: 1px solid currentColor;
+		font-size: 11px;
+	}
+	.cq-recs footer,
+	.cq-module-grid footer {
+		margin-top: auto;
+		padding-top: 15px;
+		border-top: 1px solid #666;
+		display: grid;
+		gap: 5px;
+		font-size: 12px;
+	}
+	.cq-recs article > a {
+		margin-top: 16px;
+		color: #86a8ff;
+		font-weight: 800;
+	}
+	.cq-weather {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		border-left: 1px solid var(--ink);
+		border-top: 1px solid var(--ink);
+	}
+	.cq-weather article {
+		min-height: 180px;
+		padding: 20px;
+		border-right: 1px solid var(--ink);
+		border-bottom: 1px solid var(--ink);
+	}
+	.cq-weather article div {
+		display: flex;
+		justify-content: space-between;
+		color: var(--red);
+	}
+	.cq-weather strong {
+		display: block;
+		margin: 20px 0 10px;
+		font-size: 30px;
+	}
+	.cq-weather p {
+		margin: 0;
+		color: var(--muted);
+	}
+	.cq-module-grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		border-left: 1px solid var(--ink);
+		border-top: 1px solid var(--ink);
+	}
+	.cq-module-grid article {
+		padding: 25px;
+		min-height: 430px;
+		display: flex;
+		flex-direction: column;
+		border-right: 1px solid var(--ink);
+		border-bottom: 1px solid var(--ink);
+	}
+	.cq-module-grid article > p:not(.cq-eyebrow) {
+		color: var(--muted);
+		line-height: 1.65;
+	}
+	.cq-rating {
+		display: grid;
+		gap: 6px;
+		font-size: 12px;
+	}
+	.cq-module-grid footer {
+		border-color: var(--ink);
+	}
+	.cq-pois {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 18px;
+	}
+	.cq-pois article,
+	.cq-food-cards article {
+		border: 1px solid var(--ink);
+		background: #fbf7ef;
+	}
+	.cq-pois header,
+	.cq-food-cards header {
+		padding: 18px;
+		display: grid;
+		grid-template-columns: 54px 1fr auto;
+		gap: 14px;
+		align-items: center;
+		border-bottom: 1px solid var(--ink);
+	}
+	.cq-grade {
+		width: 48px;
+		height: 48px;
+		display: grid;
+		place-items: center;
+		background: var(--ink);
+		color: white;
+		font-size: 24px;
+		font-weight: 900;
+	}
+	.grade-s {
+		background: var(--red);
+	}
+	.grade-a {
+		background: var(--blue);
+	}
+	.cq-pois h3,
+	.cq-food-cards h3 {
+		margin: 2px 0 0;
+		font-size: 21px;
+	}
+	.cq-pois small,
+	.cq-food-cards small {
+		color: var(--red);
+		font-weight: 900;
+	}
+	.cq-save {
+		border: 1px solid var(--ink);
+		background: transparent;
+		padding: 8px;
+		cursor: pointer;
+	}
+	.cq-save[data-state="1"] {
+		background: var(--blue);
+		color: white;
+	}
+	.cq-save[data-state="2"] {
+		background: var(--red);
+		color: white;
+	}
+	.cq-verdict {
+		margin: 0;
+		padding: 18px;
+		background: var(--ink);
+		color: white;
+	}
+	dl {
+		margin: 0;
+	}
+	dl div {
+		display: grid;
+		grid-template-columns: 100px 1fr;
+		padding: 14px 18px;
+		border-bottom: 1px solid var(--line);
+	}
+	dt {
+		font-weight: 900;
+	}
+	dd {
+		margin: 0;
+		color: var(--muted);
+	}
+	.cq-food {
+		max-width: none;
+		padding-left: max(24px, calc((100vw - var(--max)) / 2));
+		padding-right: max(24px, calc((100vw - var(--max)) / 2));
+		background: #efe6d7;
+	}
+	.cq-food-rules {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		border-left: 1px solid var(--ink);
+		border-top: 1px solid var(--ink);
+	}
+	.cq-food-rules article {
+		min-height: 190px;
+		padding: 20px;
+		border-right: 1px solid var(--ink);
+		border-bottom: 1px solid var(--ink);
+	}
+	.cq-food-rules p {
+		color: var(--muted);
+		line-height: 1.6;
+	}
+	.cq-food-filter {
+		margin-top: 28px;
+		padding: 16px;
+		border: 1px solid var(--ink);
+		background: var(--paper);
+		display: grid;
+		gap: 12px;
+	}
+	.cq-food-filter > div {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 7px;
+		align-items: center;
+	}
+	.cq-food-filter b {
+		width: 45px;
+	}
+	.cq-food-filter button.active {
+		background: var(--blue);
+		color: white;
+		border-color: var(--blue);
+	}
+	.cq-count {
+		text-align: right;
+		font-weight: 800;
+		font-size: 12px;
+	}
+	.cq-food-cards {
+		display: grid;
+		gap: 16px;
+	}
+	.cq-food-cards .cq-verdict {
+		display: grid;
+		grid-template-columns: 110px 1fr;
+	}
+	.cq-food-cards .cq-verdict p {
+		margin: 0;
+	}
+	.cq-food-cards dl {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+	}
+	.cq-food-cards footer {
+		padding: 14px 18px;
+		text-align: right;
+	}
+	.cq-food-cards footer a {
+		color: var(--blue);
+		font-weight: 900;
+	}
+	.cq-specials {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		border-left: 1px solid var(--ink);
+		border-top: 1px solid var(--ink);
+	}
+	.cq-specials article {
+		min-height: 300px;
+		padding: 24px;
+		border-right: 1px solid var(--ink);
+		border-bottom: 1px solid var(--ink);
+	}
+	.cq-specials h3 {
+		font-size: 32px;
+		margin: 0 0 12px;
+	}
+	.cq-specials strong {
+		color: var(--red);
+	}
+	.cq-specials article > p:last-child {
+		color: var(--muted);
+		line-height: 1.7;
+	}
+	.cq-days {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		border-left: 1px solid var(--ink);
+		border-top: 1px solid var(--ink);
+	}
+	.cq-days article {
+		min-height: 160px;
+		padding: 20px;
+		border-right: 1px solid var(--ink);
+		border-bottom: 1px solid var(--ink);
+	}
+	.cq-days b {
+		color: var(--red);
+	}
+	.cq-days strong {
+		display: block;
+		margin: 10px 0;
+		font-size: 20px;
+	}
+	.cq-days p {
+		color: var(--muted);
+		margin: 0;
+	}
+	.cq-return {
+		margin-top: 45px;
+		padding: 30px;
+		background: var(--blue);
+		color: white;
+		display: grid;
+		grid-template-columns: 1fr auto;
+		gap: 30px;
+		align-items: center;
+	}
+	.cq-return h3 {
+		font-size: 38px;
+		margin: 0;
+	}
+	.cq-return a {
+		white-space: nowrap;
+	}
+	.cq-sources > div:last-child {
+		border-top: 1px solid var(--ink);
+	}
+	.cq-sources a {
+		display: flex;
+		justify-content: space-between;
+		padding: 16px 0;
+		border-bottom: 1px solid var(--ink);
+	}
+	.cq-sources a b {
+		color: var(--blue);
+	}
+	.cq-footer {
+		padding: 50px max(24px, calc((100vw - var(--max)) / 2));
+		background: var(--ink);
+		color: white;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+	.cq-footer p {
+		color: #aaa;
+	}
+	.cq-footer a {
+		color: #86a8ff;
+		font-weight: 900;
+	}
+	[hidden] {
+		display: none !important;
+	}
+	@media (max-width: 900px) {
+		.cq-header {
+			padding: 0 18px;
+		}
+		.cq-menu {
+			display: block;
+		}
+		.cq-header nav {
+			display: none;
+			position: absolute;
+			top: 64px;
+			left: 0;
+			right: 0;
+			height: auto;
+			background: var(--paper);
+			border-bottom: 1px solid var(--ink);
+			padding: 12px 18px;
+			flex-direction: column;
+			align-items: stretch;
+			gap: 0;
+		}
+		.cq-header nav.open {
+			display: flex;
+		}
+		.cq-header nav a {
+			height: auto;
+			padding: 11px 0;
+			border-bottom: 1px solid var(--line);
+			display: block;
+		}
+		.cq-hero {
+			grid-template-columns: 1fr;
+		}
+		.cq-hero-copy,
+		.cq-facts {
+			padding: 65px 22px;
+		}
+		.cq-facts {
+			border-left: 0;
+			border-top: 1px solid #555;
+		}
+		.cq-live {
+			grid-column: 1;
+			grid-template-columns: 1fr;
+			padding: 25px 22px;
+			gap: 8px;
+		}
+		.cq-mode-strip,
+		.cq-choices,
+		.cq-recs,
+		.cq-weather,
+		.cq-module-grid,
+		.cq-pois,
+		.cq-food-rules,
+		.cq-specials,
+		.cq-days {
+			grid-template-columns: 1fr;
+		}
+		.cq-section {
+			padding: 75px 18px;
+		}
+		.cq-router,
+		.cq-food {
+			padding-left: 18px;
+			padding-right: 18px;
+		}
+		.cq-heading {
+			grid-template-columns: 55px 1fr;
+		}
+		.cq-heading > span {
+			font-size: 30px;
+		}
+		.cq-date-context {
+			flex-direction: column;
+			gap: 5px;
+		}
+		.cq-recs article {
+			min-height: 330px;
+		}
+		.cq-module-grid article {
+			min-height: 360px;
+		}
+		.cq-pois header,
+		.cq-food-cards header {
+			grid-template-columns: 48px 1fr;
+		}
+		.cq-pois header button,
+		.cq-food-cards header strong {
+			grid-column: 2;
+			justify-self: start;
+		}
+		.cq-food-cards .cq-verdict,
+		.cq-food-cards dl {
+			grid-template-columns: 1fr;
+		}
+		.cq-return {
+			grid-template-columns: 1fr;
+		}
+		.cq-footer {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 15px;
+		}
+	}
+	@media print {
+		.cq-header,
+		.cq-menu,
+		.cq-hero-actions,
+		.cq-save,
+		.cq-food-filter,
+		.cq-footer {
+			display: none !important;
+		}
+		body {
+			background: white;
+		}
+		.cq-section {
+			break-inside: avoid;
+		}
+	}
+</style>

@@ -17,10 +17,10 @@ const foodKinds = ["全部", ...new Set(foods.map((item) => item[2]))];
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<title>重庆旅行控制台 · 6人自由行</title>
+		<title>重庆旅行控制台 · 6人自由行 · 已归档</title>
 		<meta
 			name="description"
-			content="2026年8月14日至22日，六名大学生的模块化重庆旅行决策系统。"
+			content="2026年8月14日至22日，六名大学生的模块化重庆旅行决策系统。行程已结束，页面转为行程记录。"
 		/>
 		<meta property="og:title" content="重庆旅行控制台" />
 		<meta property="og:description" content="不是赶路，是随时选路。" />
@@ -49,6 +49,14 @@ const foodKinds = ["全部", ...new Set(foods.map((item) => item[2]))];
 		</header>
 
 		<main id="top">
+			<section class="cq-archived" aria-label="归档说明">
+				<b>ARCHIVED · 已归档</b>
+				<span
+					>行程已于 2026-08-22
+					结束。本页面转为行程记录，内容不再更新，可作复盘与参考。</span
+				>
+			</section>
+
 			<section class="cq-hero">
 				<div class="cq-hero-copy">
 					<p class="cq-eyebrow">
@@ -63,25 +71,30 @@ const foodKinds = ["全部", ...new Set(foods.map((item) => item[2]))];
 						<a href="#today">开始今天的决策</a><a
 							class="secondary"
 							href="/chongqing/chongqing-travel-guide.pdf"
-							download>下载离线PDF</a>
+							download>下载离线PDF</a
+						>
 					</div>
 				</div>
 				<div class="cq-facts">
 					<div>
 						<span>住宿基地</span><b>富城大厦 · 北区路14号</b><small
-							>地图搜“富城大厦（一号桥）”</small>
+							>地图搜“富城大厦（一号桥）”</small
+						>
 					</div>
 					<div>
 						<span>软预算</span><b>1,000元 / 人</b><small
-							>住宿与深渝大交通不计</small>
+							>住宿与深渝大交通不计</small
+						>
 					</div>
 					<div>
 						<span>去程</span><b>G2944 · 深圳北 08:21</b><small
-							>重庆西15:11；以本人12306车票为准</small>
+							>重庆西15:11；以本人12306车票为准</small
+						>
 					</div>
 					<div>
 						<span>返程 · 8/22</span><b>重庆北16:52 / 16:56</b><small
-							>Z334（5人）· D2255（1人）</small>
+							>Z334（5人）· D2255（1人）</small
+						>
 					</div>
 				</div>
 				<div class="cq-live" aria-live="polite">
@@ -100,10 +113,11 @@ const foodKinds = ["全部", ...new Set(foods.map((item) => item[2]))];
 					<b>雨天模式</b><span>博物馆/商圈/民宿；雷雨不靠江</span>
 				</div><div>
 					<b>腿废模式</b><span
-						>单模块+两段网约车，恢复是在保护明天</span>
+						>单模块+两段网约车，恢复是在保护明天</span
+					>
 				</div><div>
-					<b>桌游模式</b><span
-						>外卖、补水、空调；21:00再决定夜宵</span>
+					<b>桌游模式</b><span>外卖、补水、空调；21:00再决定夜宵</span
+					>
 				</div>
 			</section>
 
@@ -145,12 +159,14 @@ const foodKinds = ["全部", ...new Set(foods.map((item) => item[2]))];
 				<div class="cq-date-context">
 					<b id="router-day">非行程日 · 手动试算</b><span
 						id="router-note"
-						>正式旅行日会按北京时间载入当天的默认天气与兴趣。</span>
+						>正式旅行日会按北京时间载入当天的默认天气与兴趣。</span
+					>
 				</div>
 				<div class="cq-rec-head">
 					<b id="rec-label">TOP 3</b><button
 						id="shuffle"
-						type="button">换一组同分选项</button>
+						type="button">换一组同分选项</button
+					>
 				</div>
 				<div class="cq-recs" id="recommendations"></div>
 			</section>
@@ -489,7 +505,8 @@ const foodKinds = ["全部", ...new Set(foods.map((item) => item[2]))];
 						</p>
 					</div><a
 						href="/chongqing/chongqing-travel-guide.pdf"
-						download>下载16页离线旅行手册</a>
+						download>下载16页离线旅行手册</a
+					>
 				</div>
 			</section>
 
@@ -779,6 +796,27 @@ const foodKinds = ["全部", ...new Set(foods.map((item) => item[2]))];
 		border: 1px solid var(--ink);
 		background: transparent;
 		padding: 7px 10px;
+	}
+	.cq-archived {
+		padding: 14px max(24px, calc((100vw - var(--max)) / 2));
+		border-bottom: 1px solid var(--ink);
+		background: var(--ink);
+		color: white;
+		display: flex;
+		align-items: baseline;
+		flex-wrap: wrap;
+		gap: 6px 16px;
+	}
+	.cq-archived b {
+		color: var(--red);
+		font-size: 11px;
+		font-weight: 900;
+		letter-spacing: 0.12em;
+	}
+	.cq-archived span {
+		color: #d8d2c6;
+		font-size: 13px;
+		line-height: 1.6;
 	}
 	.cq-hero {
 		min-height: 700px;
@@ -1359,6 +1397,9 @@ const foodKinds = ["全部", ...new Set(foods.map((item) => item[2]))];
 	@media (max-width: 900px) {
 		.cq-header {
 			padding: 0 18px;
+		}
+		.cq-archived {
+			padding: 12px 18px;
 		}
 		.cq-menu {
 			display: block;

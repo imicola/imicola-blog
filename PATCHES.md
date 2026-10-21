@@ -19,8 +19,15 @@
 
 ## 行为约定（与 Mizuki 一致，验收基线）
 
-- `[!note]-`：收起面板，summary 显示 NOTE；`[!note]+`：展开面板。
+- `[!note]-`：收起面板，summary 显示 NOTE；`[!note]+`：展开面板（`<details open>`）。
 - `[!note]+ 什么是 docker compose ?`：展开面板，summary 显示"什么是 docker compose ?"。
 - `[!danger]`：普通 admonition（caution 配色），标题显示 Danger。
 - `[!Tip]` 大小写不敏感，渲染 tip。
 - 未设置 `aiLevel` 的文章不显示 AI 参与度卡片。
+
+## 与上游的重要契约差异（升级时注意）
+
+1. **加密契约（fail-closed）**：Shirone 判定加密文章的条件是 **frontmatter 存在非空 `password`**（`src/utils/post-encryption.ts`），与 Mizuki 的 `encrypted: true` 语义不同。迁移时已清除 6 篇 `encrypted: false` + 残留 `password: imicola` 的字段；**爱国公司CloseAI食用指南** 与 **继续在21世纪活下去** 两篇为真加密（保留）。若文章误带 password 字段，正文会整页进入加密路径（视觉上表现为"内容消失"）。
+2. **CRLF 文章**：源文件多为 CRLF 行尾，mdast 的 text value 会保留 `\r`，`remark-admonitions.mjs` 已在取声明行时剥离（`declaration.replace(/\r$/, "")`）。
+3. **本地 `.npmrc` 的 `public-hoist-pattern[]=cookie`**：本机 home 目录残留 `~/node_modules/cookie@0.7.2`（CJS）会被构建产物的 Node 模块解析链命中，与 Astro 7 需要的 cookie@2.x（ESM）冲突报 `Named export 'parseCookie' not found`；hoist 正确版本到项目顶层屏蔽。CF Pages 干净环境理论上不需要，保留无害。
+4. **渲染缓存位置**：改 markdown 插件源码后，需删除 `node_modules/.astro`（content layer data store）才能让改动生效——`.astro`（项目根）与 `node_modules/.vite` 都不够。

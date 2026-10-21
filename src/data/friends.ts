@@ -1,10 +1,6 @@
-/**
- * 友情链接数据配置（结构与 Mizuki 同款，便于互相迁移）。
- * 用于管理友情链接页面的数据：src/pages/friends.astro → organisms/FriendSection。
- *
- * 添加友链：在 friendsData 中追加一项即可，页面 / 筛选标签自动生成。
- * tags 会聚合为页面顶部的筛选 chip（OR 命中：选中多个标签时命中任一即显示）。
- */
+// 友情链接数据配置
+// 用于管理友情链接页面的数据
+
 export interface FriendItem {
 	id: number;
 	title: string;
@@ -18,36 +14,60 @@ export interface FriendItem {
 export const friendsData: FriendItem[] = [
 	{
 		id: 1,
-		title: "Mizuki",
-		imgurl: "https://avatars.githubusercontent.com/u/225602409?v=4&s=640",
-		desc: "Another Fuwari-based blog theme with docs",
-		siteurl: "https://mizuki.mysqil.com",
-		tags: ["Blog", "Theme"],
+		title: "imicola",
+		imgurl: "https://avatars.githubusercontent.com/u/176208294?v=4",
+		desc: "这是窝！",
+		siteurl: "https://github.com/imicola",
+		tags: ["Personal"],
 	},
 	{
 		id: 2,
-		title: "Astro",
-		imgurl: "https://avatars.githubusercontent.com/u/44914786?v=4&s=640",
-		desc: "The web framework for content-driven websites",
-		siteurl: "https://astro.build",
-		tags: ["Framework"],
+		title: "imicola library",
+		imgurl: "https://ts1.tc.mm.bing.net/th/id/OIP-C.T-4_tSTEuaJHMqrZtdIN4gHaHa?rs=1&pid=ImgDetMain&o=7&rm=3",
+		desc: "imicola的知识中心，很多笔记都在这里面",
+		siteurl: "https://imicola.github.io",
+		tags: ["Blog", "Knowledge Base"],
 	},
 	{
 		id: 3,
-		title: "Material 3",
-		imgurl: "https://avatars.githubusercontent.com/u/19478152?v=4&s=640",
-		desc: "Material Design 3 — the next generation of Material Design",
-		siteurl: "https://m3.material.io",
-		tags: ["Design"],
+		title: "alisa22580",
+		imgurl: "https://avatars.githubusercontent.com/u/181569820?v=4",
+		desc: "关注Alisa喵,他是一个真正的男娘",
+		siteurl: "https://alisa22580.pages.dev",
+		tags: ["Friend"],
+	},
+	{
+		id: 4,
+		title: "wcx",
+		imgurl: "https://avatars.githubusercontent.com/u/206184165?v=4",
+		siteurl: "https://wcx684.github.io",
+		desc: "这是wcx,他是一个真正的man",
+		tags: ["Friend"],
+	},
+	{
+		id: 5,
+		title: "fatfathao",
+		imgurl: "https://avatars.githubusercontent.com/u/155948622?v=4",
+		desc: "关注fatfathao喵，关注fatfathao谢谢喵",
+		siteurl: "https://fatfathao.top",
+		tags: ["Friend"],
+	},
+	{
+		id: 6,
+		title: "奇奇莫拉の日记本",
+		imgurl: "https://qiqimora.cn/_astro/avatar.qk8rO0hW_1zxmdw.webp",
+		desc: "咱是奇奇莫拉，今天也不想出门qwq",
+		siteurl: "https://qiqimora.cn/",
+		tags: ["Friend"],
 	},
 ];
 
-// 获取所有友情链接数据（稳定顺序，测试可复现）
+// 获取所有友情链接数据
 export function getFriendsList(): FriendItem[] {
 	return friendsData;
 }
 
-// 获取随机排序的友情链接数据（避免固定排序，按需使用）
+// 获取随机排序的友情链接数据
 export function getShuffledFriendsList(): FriendItem[] {
 	const shuffled = [...friendsData];
 	for (let i = shuffled.length - 1; i > 0; i--) {

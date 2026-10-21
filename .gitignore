@@ -57,3 +57,8 @@ tests/site/visual.spec.ts-snapshots/
 artifacts/lighthouse/*
 !artifacts/lighthouse/.gitkeep
 .lighthouseci/
+
+# Agent workspace
+.agent/
+temp/
+src/data/bangumi-data.json

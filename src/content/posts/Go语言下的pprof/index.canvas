@@ -1,0 +1,79 @@
+{
+	"nodes": [
+		{
+			"id": "group-1",
+			"type": "group",
+			"x": 40,
+			"y": 20,
+			"width": 860,
+			"height": 500,
+			"label": "pprof Canvas Preview"
+		},
+		{
+			"id": "text-1",
+			"type": "text",
+			"x": 90,
+			"y": 80,
+			"width": 320,
+			"height": 140,
+			"text": "本文围绕 pprof 的问题拆解：\n1. 如何采样\n2. 如何定位热点\n3. 如何解释调用关系",
+			"color": "2"
+		},
+		{
+			"id": "link-1",
+			"type": "link",
+			"x": 460,
+			"y": 80,
+			"width": 340,
+			"height": 72,
+			"text": "Go pprof 官方文档",
+			"url": "https://pkg.go.dev/runtime/pprof"
+		},
+		{
+			"id": "file-1",
+			"type": "file",
+			"x": 460,
+			"y": 190,
+			"width": 360,
+			"height": 260,
+			"file": "./image-1.png"
+		},
+		{
+			"id": "text-2",
+			"type": "text",
+			"x": 90,
+			"y": 280,
+			"width": 320,
+			"height": 160,
+			"text": "这块区域用来展示文章中的流程总结。\n你也可以用 frontmatter 改成 full 模式。",
+			"color": "1"
+		}
+	],
+	"edges": [
+		{
+			"id": "edge-1",
+			"fromNode": "text-1",
+			"toNode": "link-1",
+			"fromSide": "right",
+			"toSide": "left",
+			"toEnd": "arrow"
+		},
+		{
+			"id": "edge-2",
+			"fromNode": "link-1",
+			"toNode": "file-1",
+			"fromSide": "bottom",
+			"toSide": "top",
+			"label": "参考图",
+			"toEnd": "arrow"
+		},
+		{
+			"id": "edge-3",
+			"fromNode": "text-1",
+			"toNode": "text-2",
+			"fromSide": "bottom",
+			"toSide": "top",
+			"color": "1"
+		}
+	]
+}

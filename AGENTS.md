@@ -4,6 +4,15 @@
 
 Shirone is a blog theme built with Astro 7, Svelte 5, Tailwind 4, Stylus, and pnpm. It is refactored into an M3E (Material 3 Extended) component library with data-driven orchestration. In-site navigation uses Swup, so the persistent shell and the replaceable page container have different lifecycles. Development happens on Windows; use the `.cmd` suffix for package commands (`pnpm.cmd`, `npx.cmd`, `npm.cmd`).
 
+## 本站补充（imicola 部署，覆盖上游约定）
+
+- **环境（Linux/WSL）**：本机用 nvm，构建前 `source ~/.nvm/nvm.sh && nvm use 22`（Node ≥ 22.12 硬性要求；命令不需要 `.cmd` 后缀）。pnpm 版本由 `packageManager` 字段锁定为 9.14.4。
+- **本站魔改**：相对上游的改动（aiLevel、增强 alerts、文章级 License、umami、字体）登记在根目录 `PATCHES.md`；merge 上游（`git merge shirone/main`）后按该清单复核重放。上游基座 commit `6fa3053`。
+- **改 markdown 插件后**：必须 `rm -rf node_modules/.astro`（content layer 渲染缓存，插件源码变化不在缓存 key 内），否则构建结果停留在旧渲染。
+- **文章加密契约（fail-closed）**：frontmatter 只要存在非空 `password` 字段即视为加密文章（`src/utils/post-encryption.ts`），与 `encrypted` 标志无关；不加密的文章**不要留 password 字段**。
+- **文章源文件多为 CRLF**：解析器处理声明行时须剥离行尾 `\r`。
+- **旧架构回滚**：`mizuki-final` tag（Mizuki v8.3 最终状态）。生产部署：Cloudflare Pages，master 分支。
+
 ## Must-follow rules
 
 - Optional features and third-party integrations (comments, analytics, widgets, etc.) must follow the **zero extra burden** rule: when disabled (`enable: false` or omitted), they must produce zero external network requests, zero DOM footprint/layout shift, zero npm bundle bloat (dynamic loading only), and full backward compatibility without requiring mass edits to existing content frontmatter.

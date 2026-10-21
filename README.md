@@ -19,6 +19,16 @@ Crafted by [matsuzaka-yuki](https://github.com/matsuzaka-yuki)
 
 </div>
 
+## 本站部署说明（imicola）
+
+本仓库是 [imicola 的博客](https://blog.imicola.com/)，于 2026-10-21 从 Mizuki v8.3 架构升级至 Shirone：
+
+- **上游基座 commit**：`6fa30531602e3ba35cf726cceb9da3940ded0344`（remote `shirone` → matsuzaka-yuki/Shirone）；跟进主题升级：`git fetch shirone && git merge shirone/main`，冲突文件清单见 [PATCHES.md](./PATCHES.md)。
+- **魔改清单**：AI 参与度标识、增强版 GitHub Alerts（折叠/自定义标题/未知类型容错）、文章级 License、umami 统计、MapleMono 字体——全部登记在 [PATCHES.md](./PATCHES.md)。
+- **回滚锚点**：`mizuki-final` tag 保留完整的 Mizuki 最终状态。
+- **部署**：Cloudflare Pages（生产分支 `master`，其余分支自动预览部署）；Node 版本由根目录 `.node-version`（22）固定，无需控制台环境变量。
+- **迁移过程记录**：[docs/SHIRONE_MIGRATION_PLAN.md](./docs/SHIRONE_MIGRATION_PLAN.md)。
+
 ![Shirone homepage](./public/assets/projects/shirone.webp)
 
 <table>

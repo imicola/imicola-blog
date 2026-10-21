@@ -11,7 +11,7 @@ import type { DevicesConfig } from "@/types/devicesConfig";
  * 注：设备的具体清单数据（设备名、品牌、规格、感受说明、图片等）请在 `src/data/devices.ts` 中维护。
  */
 export const devicesConfig: DevicesConfig = {
-	enable: true,
+	enable: false,
 	categories: [
 		{
 			key: "desk",

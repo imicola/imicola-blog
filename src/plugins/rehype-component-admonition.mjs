@@ -56,6 +56,10 @@ export function AdmonitionComponent(properties, children, type) {
 		: null;
 
 	if (type === "details") {
+		// [!type]+ 折叠标记：默认展开（原生 <details open>）
+		if (properties.open !== undefined && properties.open !== null) {
+			rootProperties.open = "";
+		}
 		return h("details", rootProperties, [
 			h("summary", { class: "m3-admonition__header m3-state-layer" }, [
 				renderIndicator(),

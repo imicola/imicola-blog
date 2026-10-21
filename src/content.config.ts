@@ -17,6 +17,15 @@ const postsCollection = defineCollection({
 		category: z.string().optional().nullable().default(""),
 		lang: z.string().optional().default(""),
 
+		/* Per-post author / source / license（自 Mizuki 迁移的文章级元数据） */
+		author: z.string().optional().default(""),
+		sourceLink: z.string().optional().default(""),
+		licenseName: z.string().optional().default(""),
+		licenseUrl: z.string().optional().default(""),
+
+		/* AI participation level: 0 none / 1 human-core AI-polish / 2 human-outline AI-fill / 3 AI-generated */
+		aiLevel: z.number().int().min(0).max(3).optional(),
+
 		/* Post Encryption */
 		encrypted: z.boolean().optional().default(false),
 		password: z

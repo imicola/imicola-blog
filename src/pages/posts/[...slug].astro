@@ -6,6 +6,7 @@ import AccentBar from "@components/atoms/display/AccentBar.svelte";
 import Card from "@components/atoms/display/Card.svelte";
 import Markdown from "@components/content/Markdown.astro";
 import ImageWrapper from "@components/molecules/ImageWrapper.astro";
+import AiParticipation from "@components/molecules/AiParticipation.astro";
 import LastUpdatedNotice from "@components/molecules/LastUpdatedNotice.astro";
 import License from "@components/molecules/License.astro";
 import PostMetadata from "@components/molecules/PostMeta.astro";
@@ -177,6 +178,13 @@ const jsonLd = {
                 {!entry.data.image && <div class="border-[var(--line-divider)] border-dashed border-b-[1px] mb-5"></div>}
             </div>
 
+            <!-- AI participation badge (migrated from Mizuki) -->
+			{typeof entry.data.aiLevel === "number" && (
+				<div class="onload-animation">
+					<AiParticipation level={entry.data.aiLevel as 0 | 1 | 2 | 3} />
+				</div>
+			)}
+
             <!-- always show cover as long as it has one -->
 
 			{entry.data.image &&
@@ -208,7 +216,7 @@ const jsonLd = {
                 </Markdown>
             )}
 
-			{licenseConfig.enable && <License title={entry.data.title} slug={entry.id} pubDate={entry.data.published} class="mb-6 rounded-xl license-container onload-animation"></License>}
+			{licenseConfig.enable && <License title={entry.data.title} slug={entry.id} pubDate={entry.data.published} author={entry.data.author} sourceLink={entry.data.sourceLink} licenseName={entry.data.licenseName} licenseUrl={entry.data.licenseUrl} class="mb-6 rounded-xl license-container onload-animation"></License>}
 
 			{shareOptions && (
 				<ArticleShare

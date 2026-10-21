@@ -9,10 +9,10 @@ import type {
  * 类型见 src/types/config.ts。
  */
 export const siteConfig: SiteConfig = {
-	site: "https://shirone.mysqil.com/",
+	site: "https://blog.imicola.com/",
 	base: "/",
-	title: "Shirone",
-	subtitle: "A Material 3 anime blog",
+	title: "imicola",
+	subtitle: "人,进来",
 	// 电脑端顶栏标题与导航内容区域："left" 左对齐，"center" 居中。
 	topAppBar: {
 		contentAlign: "center",
@@ -26,9 +26,9 @@ export const siteConfig: SiteConfig = {
 		reduceMotion: true, // 是否展示减少动效切换
 		texture: true, // 是否展示背景纹理选择
 	},
-	lang: "en", // Language code, e.g. 'en', 'zh_CN', 'ja', etc.
+	lang: "zh_CN", // Language code, e.g. 'en', 'zh_CN', 'ja', etc.
 	themeColor: {
-		hue: 315, // Default hue 0-360. 站点设计默认粉紫（偏二次元）；262 紫 / 345 粉 也可选
+		hue: 345, // Default hue 0-360. 站点设计默认粉紫（偏二次元）；262 紫 / 345 粉 也可选
 		fixed: false, // Hide the theme color picker for visitors
 		// Dynamic Material 3 palette style (TonalSpot/Vibrant/Content/Expressive/Rainbow/FruitSalad/Monochrome/Neutral/Fidelity)
 		style: "tonalSpot",
@@ -54,8 +54,36 @@ export const siteConfig: SiteConfig = {
 		// desktop 用于 >= 1024px；mobile 仅用于 < 1024px 的首页，手机非首页不显示壁纸。
 		// 数组顺序就是轮播顺序；只需要静态 Banner 时，每组保留一张图片即可。
 		src: {
-			desktop: ["assets/images/banner/desktop/1.webp"],
-			mobile: ["assets/images/banner/mobile/1.webp"],
+			desktop: [
+				"/assets/banner/desktop/1.webp",
+				"/assets/banner/desktop/2.webp",
+				"/assets/banner/desktop/3.webp",
+				"/assets/banner/desktop/4.webp",
+				"/assets/banner/desktop/5.webp",
+				"/assets/banner/desktop/6.webp",
+				"/assets/banner/desktop/670.webp",
+				"/assets/banner/desktop/Alice.webp",
+				"/assets/banner/desktop/kulaxiku.webp",
+				"/assets/banner/desktop/luckystar.webp",
+				"/assets/banner/desktop/muzimi.webp",
+				"/assets/banner/desktop/muzimi2.webp",
+				"/assets/banner/desktop/radom01.webp",
+			],
+			mobile: [
+				"/assets/banner/mobile/1.webp",
+				"/assets/banner/mobile/2.webp",
+				"/assets/banner/mobile/3.webp",
+				"/assets/banner/mobile/4.webp",
+				"/assets/banner/mobile/5.webp",
+				"/assets/banner/mobile/6.webp",
+				"/assets/banner/mobile/670.webp",
+				"/assets/banner/mobile/Alice.webp",
+				"/assets/banner/mobile/kulaxiku.webp",
+				"/assets/banner/mobile/luckystar.webp",
+				"/assets/banner/mobile/muzimi.webp",
+				"/assets/banner/mobile/muzimi2.webp",
+				"/assets/banner/mobile/radom01.webp",
+			],
 		},
 		// 图片裁切焦点："top"、"center" 或 "bottom"。
 		position: "center",
@@ -67,13 +95,12 @@ export const siteConfig: SiteConfig = {
 		homeText: {
 			// 仅在首页 Banner 中显示，标题与副标题会上下居中排列。
 			enable: true,
-			title: "Shirone",
+			title: "imicola的猫咖",
 			subtitle: [
-				"特別なことはないけど、君がいると十分です",
-				"今でもあなたは私の光",
-				"君ってさ、知らないうちに私の毎日になってたよ",
-				"君と話すと、なんか毎日がちょっと楽しくなるんだ",
-				"今日はなんでもない日。でも、ちょっとだけいい日",
+				"晚上好,或者早上好",
+				"是谁骗你进来的喵?",
+				"算了进来就随便看点东西叭",
+				"虽然是猫窝但是没有猫(",
 			],
 			typewriter: {
 				// 副标题逐字显示；关闭后直接显示完整副标题。
@@ -92,7 +119,7 @@ export const siteConfig: SiteConfig = {
 			// 是否开启多张图片自动轮播；多张图片时生效，单张图片时自动降级为静态展示。
 			enable: true,
 			// 轮播切换间隔时间（毫秒），运行时最小值限制为 3000ms。
-			interval: 6000,
+			interval: 4000,
 			// 交叉淡入淡出（Crossfade）过渡时长（毫秒，默认 1200ms）。
 			fadeDuration: 1200,
 			// 运镜呼吸动画模式："ken-burns"（默认，循环运镜）| "zoom-in"（推进）| "zoom-out"（拉远）| "pan-left"（左移）| "pan-right"（右移）| "none"（无运镜）。
@@ -117,12 +144,10 @@ export const siteConfig: SiteConfig = {
 		style: "dual",
 	},
 	favicon: [
-		// Leave this array empty to use the default favicon
-		// {
-		//   src: '/favicon/icon.png',    // Path of the favicon, relative to the /public directory
-		//   theme: 'light',              // (Optional) Either 'light' or 'dark', set only if you have different favicons for light and dark mode
-		//   sizes: '32x32',              // (Optional) Only if you have favicons of different sizes
-		// }
+		{
+			src: "/favicon/favicon.ico",
+			sizes: "any",
+		},
 	],
 };
 

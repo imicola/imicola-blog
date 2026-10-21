@@ -1,6 +1,5 @@
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
-import { devicesConfig } from "@/config/devicesConfig";
 import { projectsConfig } from "@/config/projectsConfig";
 import { skillsConfig } from "@/config/skillsConfig";
 import { timelineConfig } from "@/config/timelineConfig";
@@ -100,10 +99,17 @@ export const LinkPresets: Record<string, NavBarLink> = {
 	},
 	GitHub: {
 		name: "GitHub",
-		url: "https://github.com/LyraVoid/Shirone",
+		url: "https://github.com/imicola",
 		icon: "fa6-brands:github",
 		external: true,
 		pageKey: "github",
+	},
+	Bilibili: {
+		name: "Bilibili",
+		url: "https://space.bilibili.com/307453935",
+		icon: "simple-icons:bilibili",
+		external: true,
+		pageKey: "bilibili",
 	},
 };
 
@@ -111,25 +117,29 @@ export const navBarConfig: NavBarConfig = {
 	links: [
 		LinkPresets.Home,
 		LinkPresets.Archive,
-		LinkPresets.Friends,
-		LinkPresets.Moments,
-		LinkPresets.Anime,
-		LinkPresets.Compass,
-		LinkPresets.Albums,
+		{
+			name: "My",
+			icon: "material-symbols:person-outline-rounded",
+			children: [
+				LinkPresets.Anime,
+				LinkPresets.Albums,
+				...(timelineConfig.enable ? [LinkPresets.Timeline] : []),
+			],
+		},
 		{
 			name: i18n(I18nKey.more),
 			icon: "material-symbols:apps-rounded",
 			children: [
-				...(timelineConfig.enable ? [LinkPresets.Timeline] : []),
 				...(projectsConfig.enable ? [LinkPresets.Projects] : []),
-				...(devicesConfig.enable ? [LinkPresets.Devices] : []),
 				...(skillsConfig.enable ? [LinkPresets.Skills] : []),
+				LinkPresets.About,
+				LinkPresets.Friends,
 				// 分类/标签入口不进导航菜单（避免菜单项过多），预设已登记指向独立页面，
 				// 需要时取消注释即可
 				// LinkPresets.Categories,
 				// LinkPresets.Tags,
-				LinkPresets.About,
 				LinkPresets.GitHub,
+				LinkPresets.Bilibili,
 			],
 		},
 	],

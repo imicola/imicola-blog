@@ -49,46 +49,36 @@ export const fontConfig: FontConfig = {
 	 */
 	fontFamilies: [
 		// ---------------------------------------------------------------------
-		// 1. 正文字体（现代几何圆润西文字体 Outfit，与 M3E 大圆角及悠哉圆体绝配）
+		// 1. 正文字体（MapleMono-SC-NF：等宽风格西文与符号，含简中子集）
 		// ---------------------------------------------------------------------
 		{
-			id: "outfit-body",
-			family: "Outfit",
+			id: "maplemono-body",
+			family: "MapleMono-SC-NF-Regular",
 			role: "body",
-			source: "fontsource",
+			source: "local",
 			variants: [
 				{
-					file: "@fontsource/outfit/400.css",
+					file: "src/assets/fonts/MapleMono-SC-NF-Regular.ttf",
 					weight: 400,
 					style: "normal",
 				},
-				{
-					file: "@fontsource/outfit/500.css",
-					weight: 500,
-					style: "normal",
-				},
-				{
-					file: "@fontsource/outfit/700.css",
-					weight: 700,
-					style: "normal",
-				},
 			],
-			fallback: ["ui-sans-serif", "system-ui", "sans-serif"],
+			fallback: ["ui-monospace", "SFMono-Regular", "Menlo", "Consolas", "monospace"],
 			display: "swap",
 			preload: false,
 		},
 
 		// ---------------------------------------------------------------------
-		// 2. 中文 / 日文 CJK 字体（悠哉圆体 Yozai Medium，全量简繁中日韩 100% 覆盖）
+		// 2. 中文 CJK 字体（MapleMono-NF-CN：作为正文的中文回退字体）
 		// ---------------------------------------------------------------------
 		{
-			id: "yozai-cjk",
-			family: "Yozai Medium",
+			id: "maplemono-cjk",
+			family: "MapleMono-NF-CN-Medium",
 			role: "cjk",
 			source: "local",
 			variants: [
 				{
-					file: "src/assets/fonts/Yozai-Medium.ttf",
+					file: "src/assets/fonts/MapleMono-NF-CN-Medium.ttf",
 					weight: 500,
 					style: "normal",
 				},

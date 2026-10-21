@@ -47,7 +47,7 @@ import type {
  */
 export const musicConfig: MusicConfig = {
 	enable: true,
-	provider: "mixed",
+	provider: "meting",
 	// tracks: [
 	// 	{
 	// 		id: "custom-1",
@@ -61,7 +61,8 @@ export const musicConfig: MusicConfig = {
 	meting: {
 		server: "netease",
 		type: "playlist",
-		id: "14164869977",
+		id: "13661967857",
+		api: "https://meting.mysqil.com/api?server=:server&type=:type&id=:id&auth=:auth&r=:r",
 	},
 	defaultVolume: 0.7,
 	defaultMode: "sequence",

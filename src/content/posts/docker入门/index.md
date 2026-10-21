@@ -10,8 +10,6 @@ licenseName: CC BY 4.0
 author: imicola
 draft: false
 image: ./cover.png
-encrypted: false
-password: imicola
 date: 2026-03-26
 ---
 

@@ -49,9 +49,9 @@ export const animeConfig: AnimeConfig = {
 		// fetchOnDev: true,
 	},
 
-	/** 异常降级策略（快照丢失或解析失败时回退本地数据） */
+	/** 异常降级策略（快照丢失或解析失败时的回退；账号暂无公开收藏，回退空态） */
 	fallback: {
-		kind: "local",
+		kind: "empty",
 	},
 
 	/** 外部提供方配置 */

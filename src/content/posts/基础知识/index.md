@@ -13,8 +13,6 @@ comment: true
 author: imicola
 licenseName: CC BY 4.0
 aiLevel: 0
-encrypted: false
-password: imicola
 ---
 
 # 容器

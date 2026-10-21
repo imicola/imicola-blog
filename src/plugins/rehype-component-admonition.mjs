@@ -1,80 +1,83 @@
 /// <reference types="mdast" />
 import { h } from "hastscript";
 
-const KNOWN_ALERT_TYPES = new Set([
-	"tip",
-	"note",
-	"important",
-	"caution",
-	"warning",
-]);
+const MAX_TITLE_LENGTH = 200;
 
-function formatUnknownTypeLabel(type) {
-	if (!type) return "NOTE";
-	return type.charAt(0).toUpperCase() + type.slice(1);
+function textContent(node) {
+	if (!node) return "";
+	if (Array.isArray(node)) return node.map(textContent).join("");
+	if (node.type === "text") return node.value;
+	return Array.isArray(node.children)
+		? node.children.map(textContent).join("")
+		: "";
+}
+
+function resolveTitle(value) {
+	return typeof value === "string"
+		? value.trim().slice(0, MAX_TITLE_LENGTH)
+		: "";
+}
+
+function titleNodes(label, fallback) {
+	if (Array.isArray(label?.children) && label.children.length > 0) {
+		return label.children;
+	}
+	return fallback;
+}
+
+function renderIndicator() {
+	return h("span", {
+		class: "m3-admonition__indicator",
+		"aria-hidden": "true",
+	});
 }
 
 /**
- * Creates an admonition component.
- *
- * @param {Object} properties - The properties of the component.
- * @param {string} [properties.title] - An optional title.
- * @param {('tip'|'note'|'important'|'caution'|'warning')} type - The admonition type.
- * @param {import('mdast').RootContent[]} children - The children elements of the component.
- * @returns {import('mdast').Parent} The created admonition component.
+ * Renders every supported admonition syntax through one SSR-only component.
  */
 export function AdmonitionComponent(properties, children, type) {
-	if (!Array.isArray(children) || children.length === 0)
-		return h(
-			"div",
-			{ class: "hidden" },
-			'Invalid admonition directive. (Admonition directives must be of block type ":::note{name="name"} <content> :::")',
-		);
-
+	const content = Array.isArray(children) ? [...children] : [];
 	let label = null;
-	if (properties?.["has-directive-label"]) {
-		label = children[0]; // The first child is the label
-		// biome-ignore lint/style/noParameterAssign: <check later>
-		children = children.slice(1);
-		label.tagName = "div"; // Change the tag <p> to <div>
+	let title = resolveTitle(properties.title);
+
+	if (properties["has-directive-label"] && content.length > 0) {
+		label = content.shift();
+		if (!title) title = resolveTitle(textContent(label));
 	}
 
-	const rawAlertType = String(properties?.["alert-type"] || type || "note");
-	const normalizedAlertType = rawAlertType.toLowerCase();
-	const isKnownAlertType = KNOWN_ALERT_TYPES.has(normalizedAlertType);
-	const styleType = isKnownAlertType ? normalizedAlertType : "note";
-
-	const titleFromAttributes =
-		typeof properties?.title === "string" ? properties.title.trim() : "";
-	const fallbackTitle = isKnownAlertType
-		? normalizedAlertType.toUpperCase()
-		: formatUnknownTypeLabel(rawAlertType);
-	const titleContent = titleFromAttributes || label || fallbackTitle;
-
-	const collapseState = properties?.["collapse-state"];
-	const isCollapsible =
-		collapseState === "collapsed" || collapseState === "expanded";
-	const isCollapsed = collapseState === "collapsed";
-
-	const blockquoteClasses = [`admonition bdm-${styleType}`];
-	if (isCollapsible) {
-		blockquoteClasses.push("admonition-collapsible");
-	}
-	if (isCollapsed) {
-		blockquoteClasses.push("is-collapsed");
-	}
-
-	const blockquoteProps = {
-		class: blockquoteClasses.join(" "),
-		"data-alert-type": rawAlertType,
+	const fallbackTitle = title || type.toUpperCase();
+	const renderedTitle = titleNodes(label, fallbackTitle);
+	const rootProperties = {
+		class: `admonition bdm-${type} m3-admonition not-prose`,
+		"data-admonition": type,
 	};
+	const body = content.length
+		? h("div", { class: "m3-admonition__body" }, content)
+		: null;
 
-	if (isCollapsible) {
-		blockquoteProps["data-collapse-state"] = collapseState;
+	if (type === "details") {
+		// [!type]+ 折叠标记：默认展开（原生 <details open>）
+		if (properties.open !== undefined && properties.open !== null) {
+			rootProperties.open = "";
+		}
+		return h("details", rootProperties, [
+			h("summary", { class: "m3-admonition__header m3-state-layer" }, [
+				renderIndicator(),
+				h("span", { class: "bdm-title m3-admonition__title" }, renderedTitle),
+				h("span", {
+					class: "m3-admonition__chevron",
+					"aria-hidden": "true",
+				}),
+			]),
+			...(body ? [body] : []),
+		]);
 	}
 
-	return h("blockquote", blockquoteProps, [
-		h("span", { class: "bdm-title" }, titleContent),
-		...children,
+	return h("aside", { ...rootProperties, role: "note" }, [
+		h("div", { class: "m3-admonition__header" }, [
+			renderIndicator(),
+			h("span", { class: "bdm-title m3-admonition__title" }, renderedTitle),
+		]),
+		...(body ? [body] : []),
 	]);
 }

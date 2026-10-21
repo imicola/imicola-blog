@@ -1,16 +1,11 @@
-export {};
+import type Swup from "swup";
+import "@swup/scroll-plugin";
 
 declare global {
-	interface HTMLElementTagNameMap {
-		"table-of-contents": HTMLElement & {
-			init?: () => void;
-		};
-	}
-
 	interface Window {
-		// Define swup type directly since @swup/astro doesn't export AstroIntegration
-		swup: any;
-		closeAnnouncement: () => void;
+		swup?: Swup;
+		__shironeNavigationBound?: boolean;
+		__shironeSidebarBound?: boolean;
 		pagefind: {
 			search: (query: string) => Promise<{
 				results: Array<{
@@ -18,17 +13,6 @@ declare global {
 				}>;
 			}>;
 		};
-
-		mobileTOCInit?: () => void;
-		initSemifullScrollDetection?: () => void;
-		iconifyLoaded?: boolean;
-		__iconifyLoader?: {
-			load: () => Promise<void>;
-			addToPreloadQueue: (icons: string[]) => void;
-			onLoad: (callback: () => void) => void;
-			isLoaded: boolean;
-		};
-		siteConfig: any;
 	}
 }
 
@@ -57,5 +41,3 @@ interface SearchResult {
 	raw_url?: string;
 	sub_results?: SearchResult[];
 }
-
-export { SearchResult };

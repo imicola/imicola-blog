@@ -1,72 +1,177 @@
+import { existsSync } from "node:fs";
+import { basename, extname } from "node:path";
+import { fileURLToPath } from "node:url";
+import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
-import svelte, { vitePreprocess } from "@astrojs/svelte";
-import tailwindcss from "@tailwindcss/vite";
+import svelte from "@astrojs/svelte";
 import { pluginCollapsibleSections } from "@expressive-code/plugin-collapsible-sections";
 import { pluginLineNumbers } from "@expressive-code/plugin-line-numbers";
 import swup from "@swup/astro";
-import { defineConfig } from "astro/config";
+import tailwindcss from "@tailwindcss/vite";
+import { defineConfig, fontProviders } from "astro/config";
 import expressiveCode from "astro-expressive-code";
 import icon from "astro-icon";
-import { umami } from "oddmisc";
-import rehypeAutolinkHeadings from "rehype-autolink-headings";
-import rehypeComponents from "rehype-components";
-import rehypeKatex from "rehype-katex";
-import rehypeSlug from "rehype-slug";
-import remarkDirective from "remark-directive";
-import remarkMath from "remark-math";
-import remarkSectionize from "remark-sectionize";
-import { siteConfig } from "./src/config.ts";
+import { expressiveCodeConfig } from "./src/config/expressiveCodeConfig.ts";
+import { resolvedFontOptions } from "./src/config/fontConfig.ts";
+import { musicConfig, resolveMusicOptions } from "./src/config/musicConfig.ts";
+import { sidebarConfig } from "./src/config/sidebarConfig.ts";
+import { siteConfig } from "./src/config/siteConfig.ts";
 import { pluginCustomCopyButton } from "./src/plugins/expressive-code/custom-copy-button.js";
 import { pluginLanguageBadge } from "./src/plugins/expressive-code/language-badge.ts";
-import { AdmonitionComponent } from "./src/plugins/rehype-component-admonition.mjs";
-import { GithubCardComponent } from "./src/plugins/rehype-component-github-card.mjs";
-import { rehypeMermaid } from "./src/plugins/rehype-mermaid.mjs";
-import { rehypeWrapTable } from "./src/plugins/rehype-wrap-table.mjs";
-import { parseDirectiveNode } from "./src/plugins/remark-directive-rehype.js";
-import { remarkMermaid } from "./src/plugins/remark-mermaid.js";
-import { remarkContent } from "./src/plugins/remark-content.mjs";
-import { rehypeImageWidth } from "./src/plugins/rehype-image-width.mjs";
-import rehypeExternalLinks from "rehype-external-links";
-import { remarkFixGithubAdmonitions } from "./src/plugins/remark-fix-github-admonitions.js";
+import { getLocalFontVariants } from "./src/utils/font-options.ts";
+import { siteMarkdownProcessor } from "./src/utils/markdown-processor.mjs";
+
+const musicWidgetEnabled =
+	sidebarConfig.enable &&
+	sidebarConfig.components.some(
+		(widget) => widget.type === "music" && widget.enable,
+	);
+const musicFeatureEnabled =
+	resolveMusicOptions(musicConfig) !== null && musicWidgetEnabled;
+const musicSidebarModuleId = "virtual:shirone-music-sidebar";
+const resolvedMusicSidebarModuleId = `\0${musicSidebarModuleId}`;
+
+const optionalMusicSidebarPlugin = {
+	name: "shirone-optional-music-sidebar",
+	enforce: "pre",
+	resolveId(source) {
+		return source === musicSidebarModuleId
+			? resolvedMusicSidebarModuleId
+			: null;
+	},
+	load(id) {
+		if (id !== resolvedMusicSidebarModuleId) return null;
+		return musicFeatureEnabled
+			? 'export { default } from "/src/components/organisms/music/MusicSidebar.astro";'
+			: "export default null;";
+	},
+	generateBundle(_options, bundle) {
+		if (!musicFeatureEnabled) {
+			for (const fileName of Object.keys(bundle)) {
+				if (
+					fileName.includes("MusicSidebarClient") ||
+					fileName.startsWith("_astro/music.") ||
+					fileName.includes("/music.")
+				) {
+					delete bundle[fileName];
+				}
+			}
+		}
+	},
+};
+
+const isBuildCommand = process.argv.includes("build");
+
+function resolveVariantSrc(file) {
+	if (isBuildCommand && resolvedFontOptions.subsetting?.enable) {
+		const ext = extname(file);
+		const baseName = basename(file, ext);
+		const subsetPath = `src/assets/fonts/.subset/${baseName}.subset.woff2`;
+		if (existsSync(subsetPath)) {
+			return `./${subsetPath}`;
+		}
+		throw new Error(
+			`[font-system] Missing required subset font: ${subsetPath}. ` +
+				"Font subsetting is enabled for production builds, but the subset file was not found. " +
+				"Ensure 'pnpm.cmd fonts:subset' ran successfully before building.",
+		);
+	}
+	return `./${file}`;
+}
+
+const configuredFonts =
+	resolvedFontOptions.mode === "custom"
+		? ["body", "cjk", "mono"].flatMap((role) => {
+				const resolvedRole = resolvedFontOptions.roles[role];
+				if (!resolvedRole.family) return [];
+
+				const isCompositeSans = role === "body" || role === "cjk";
+				const fallbackOpts = isCompositeSans
+					? { fallbacks: [], optimizedFallbacks: false }
+					: {};
+
+				const localVariants = getLocalFontVariants(resolvedFontOptions, role);
+				if (localVariants.length > 0) {
+					return [
+						{
+							provider: fontProviders.local(),
+							name: resolvedRole.family,
+							cssVariable: resolvedRole.cssVariable,
+							options: {
+								variants: localVariants.map((variant) => ({
+									src: [resolveVariantSrc(variant.file)],
+									weight: variant.weight,
+									style: variant.style,
+									display: resolvedRole.display,
+									...(variant.subset ? { subset: variant.subset } : {}),
+									...(variant.unicodeRange
+										? { unicodeRange: variant.unicodeRange }
+										: {}),
+								})),
+							},
+							...fallbackOpts,
+						},
+					];
+				}
+
+				const fontsourceVariants = resolvedRole.variants.filter(
+					(v) => v.source === "fontsource",
+				);
+				if (fontsourceVariants.length > 0) {
+					return [
+						{
+							provider: fontProviders.fontsource(),
+							name: resolvedRole.family,
+							cssVariable: resolvedRole.cssVariable,
+							...fallbackOpts,
+						},
+					];
+				}
+
+				return [];
+			})
+		: [];
 
 // https://astro.build/config
 export default defineConfig({
-	site: siteConfig.siteURL,
-	base: "/",
+	site: siteConfig.site,
+	base: siteConfig.base ?? "/",
 	trailingSlash: "always",
-
-	output: "static",
-
+	fonts: configuredFonts,
 	integrations: [
-		umami({
-			shareUrl: "https://cloud.umami.is/analytics/eu/share/XQtVOFoyHjnVcrVB",
-		}),
 		swup({
 			theme: false,
+			ignore: 'a[href="#"]',
 			animationClass: "transition-swup-",
-			containers: ["main"],
-			smoothScrolling: false, // 禁用平滑滚动以提升性能，避免与锚点导航冲突
+			containers: ["main", "#toc"],
+			smoothScrolling: true,
 			cache: true,
-			preload: true, // swup 默认鼠标悬停预加载
+			preload: true,
 			accessibility: true,
-			updateHead: true,
+			updateHead: {
+				awaitAssets: false,
+				// Keep base styles across Swup visits, but let syntax-scoped styles
+				// disappear when the destination page no longer declares them.
+				persistTags: "link[rel=stylesheet]:not([data-swup-optional]), style",
+			},
 			updateBodyClass: false,
 			globalInstance: true,
-			// 滚动相关配置优化
-			resolveUrl: (url) => url,
 			animateHistoryBrowsing: false,
-			skipPopStateHandling: (event) => {
-				// 跳过锚点链接的处理，让浏览器原生处理
-				return (
-					event.state &&
-					event.state.url &&
-					event.state.url.includes("#")
-				);
+			skipPopStateHandling: (event) => Boolean(event.state?.url?.includes("#")),
+		}),
+		icon({
+			include: {
+				"preprocess: vitePreprocess(),": ["*"],
+				"fa6-brands": ["*"],
+				"fa6-regular": ["*"],
+				"fa6-solid": ["*"],
 			},
 		}),
-		icon(),
 		expressiveCode({
-			themes: ["github-light", "github-dark"],
+			themes: [
+				expressiveCodeConfig.lightTheme ?? expressiveCodeConfig.theme,
+				expressiveCodeConfig.darkTheme ?? expressiveCodeConfig.theme,
+			],
 			plugins: [
 				pluginCollapsibleSections(),
 				pluginLineNumbers(),
@@ -76,11 +181,9 @@ export default defineConfig({
 			defaultProps: {
 				wrap: true,
 				overridesByLang: {
-					shellsession: { showLineNumbers: false },
-					bash: { frame: "code" },
-					shell: { frame: "code" },
-					sh: { frame: "code" },
-					zsh: { frame: "code" },
+					shellsession: {
+						showLineNumbers: false,
+					},
 				},
 			},
 			styleOverrides: {
@@ -88,18 +191,17 @@ export default defineConfig({
 				borderRadius: "0.75rem",
 				borderColor: "none",
 				codeFontSize: "0.875rem",
-				codeFontFamily:
-					"'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+				codeFontFamily: "var(--m3e-font-mono-family)",
 				codeLineHeight: "1.5rem",
 				frames: {
 					editorBackground: "var(--codeblock-bg)",
 					terminalBackground: "var(--codeblock-bg)",
-					terminalTitlebarBackground: "var(--codeblock-bg)",
-					editorTabBarBackground: "var(--codeblock-bg)",
+					terminalTitlebarBackground: "var(--codeblock-topbar-bg)",
+					editorTabBarBackground: "var(--codeblock-topbar-bg)",
 					editorActiveTabBackground: "none",
 					editorActiveTabIndicatorBottomColor: "var(--primary)",
 					editorActiveTabIndicatorTopColor: "none",
-					editorTabBarBorderBottomColor: "var(--codeblock-bg)",
+					editorTabBarBorderBottomColor: "var(--codeblock-topbar-bg)",
 					terminalTitlebarBorderBottomColor: "none",
 				},
 				textMarkers: {
@@ -113,83 +215,59 @@ export default defineConfig({
 			},
 		}),
 		svelte({
-			preprocess: vitePreprocess(),
+			compilerOptions: {
+				// CSS-source hashing keeps SSR and client scope hashes stable after moves.
+				cssHash: ({ css, hash }) => `svelte-${hash(css)}`,
+			},
 		}),
 		sitemap(),
+		mdx({
+			syntaxHighlight: false,
+			optimize: true,
+		}),
 	],
 	markdown: {
-		remarkPlugins: [
-			remarkMath,
-			remarkContent,
-			remarkFixGithubAdmonitions,
-			remarkDirective,
-			remarkSectionize,
-			parseDirectiveNode,
-			remarkMermaid,
-		],
-		rehypePlugins: [
-			rehypeKatex,
-			[
-				rehypeExternalLinks,
-				{
-					target: "_blank",
-					rel: ["nofollow", "noopener", "noreferrer"],
-				},
-			],
-			rehypeSlug,
-			rehypeWrapTable,
-			rehypeMermaid,
-			rehypeImageWidth,
-			[
-				rehypeComponents,
-				{
-					components: {
-						github: GithubCardComponent,
-						note: (x, y) => AdmonitionComponent(x, y, "note"),
-						tip: (x, y) => AdmonitionComponent(x, y, "tip"),
-						important: (x, y) =>
-							AdmonitionComponent(x, y, "important"),
-						caution: (x, y) => AdmonitionComponent(x, y, "caution"),
-						warning: (x, y) => AdmonitionComponent(x, y, "warning"),
-					},
-				},
-			],
-			[
-				rehypeAutolinkHeadings,
-				{
-					behavior: "append",
-					properties: {
-						className: ["anchor"],
-					},
-					content: {
-						type: "element",
-						tagName: "span",
-						properties: {
-							className: ["anchor-icon"],
-							"data-pagefind-ignore": true,
-						},
-						children: [{ type: "text", value: "#" }],
-					},
-				},
-			],
-		],
+		processor: siteMarkdownProcessor,
 	},
 	vite: {
-		plugins: [tailwindcss()],
-		assetsInclude: ["**/*.canvas"],
+		resolve: {
+			alias: [
+				{
+					find: /^@iconify\/svelte$/,
+					replacement: fileURLToPath(
+						new URL(
+							"./src/components/atoms/display/Icon.svelte",
+							import.meta.url,
+						),
+					),
+				},
+			],
+		},
+		plugins: [optionalMusicSidebarPlugin, tailwindcss()],
+		optimizeDeps: {
+			include: [
+				"mermaid",
+				"@panzoom/panzoom",
+				"overlayscrollbars",
+				"@fancyapps/ui",
+			],
+		},
 		build: {
-			// 静态资源处理优化，防止小图片转 base64 导致 HTML 体积过大（可选，根据需要调整）
-			assetsInlineLimit: 4096,
-
+			minify: "esbuild",
+			cssCodeSplit: true,
+			cssMinify: "esbuild",
+			chunkSizeWarningLimit: 1000,
+			esbuild: isBuildCommand
+				? {
+						drop: ["debugger"],
+						pure: ["console.log", "console.debug"],
+					}
+				: undefined,
 			rollupOptions: {
 				onwarn(warning, warn) {
 					if (
-						warning.message.includes(
-							"is dynamically imported by",
-						) &&
-						warning.message.includes(
-							"but also statically imported by",
-						)
+						warning.message.includes("is dynamically imported by") &&
+						warning.message.includes("but also statically imported by")
 					) {
 						return;
 					}

@@ -1,169 +1,48 @@
-# AGENTS.md
-Repository operating guide for coding agents in `imicola-blog`.
+# Agent Instructions for Shirone — M3E Blog Theme
 
-## 1) Project Snapshot
-- Stack: Astro 5, TypeScript, Svelte, Tailwind CSS 4.
-- Package manager: `pnpm` only (`preinstall` enforces this).
-- Output: static site (`astro.config.mjs` uses `output: "static"`).
-- Main code areas:
-  - `src/components/` (Astro/Svelte UI)
-  - `src/layouts/` (page layout shells)
-  - `src/pages/` (route files)
-  - `src/utils/` (shared utilities)
-  - `src/content/` (posts/spec markdown)
-  - `src/content.config.ts` (content schemas)
+## Summary
 
-## 2) Setup and Run
-Run commands from repository root.
+Shirone is a blog theme built with Astro 7, Svelte 5, Tailwind 4, Stylus, and pnpm. It is refactored into an M3E (Material 3 Extended) component library with data-driven orchestration. In-site navigation uses Swup, so the persistent shell and the replaceable page container have different lifecycles. Development happens on Windows; use the `.cmd` suffix for package commands (`pnpm.cmd`, `npx.cmd`, `npm.cmd`).
 
-```bash
-pnpm install
-pnpm dev
-```
+## Must-follow rules
 
-Typical dev URL: `http://localhost:4321`.
+- Optional features and third-party integrations (comments, analytics, widgets, etc.) must follow the **zero extra burden** rule: when disabled (`enable: false` or omitted), they must produce zero external network requests, zero DOM footprint/layout shift, zero npm bundle bloat (dynamic loading only), and full backward compatibility without requiring mass edits to existing content frontmatter.
+- Read the relevant files in `rules/` and `docs/` before changing architecture, components, routing, or content pipelines. Run `npx.cmd astro check` before committing; it must report 0 errors. Use conventional commits in the form `type(scope): subject` (`feat`, `fix`, `test`, `docs`, `refactor`, `chore`, or another justified type).
+- For UI and visual changes, read the root `DESIGN.md` alongside `docs/m3e-standard.md`; `DESIGN.md` is the machine-readable and narrative source of truth for Shirone's visual identity.
+- Never hard-code user-visible component copy. Use `src/i18n/i18nKey.ts` and all ten locale modules; parameterized strings keep the same `{placeholder}` names in every locale and are replaced by the consumer.
+- Semantic colors, radii, typography, and motion must use the project design tokens (`--shape-corner-*`, `--m3e-type-*`, `--m3e-duration-*`, `--m3e-easing-*`, and surface/on-surface tokens). Fixed black/white values are allowed only for image-overlay readability or another documented content-specific exception. Official-spec geometry or motion constants need a clear local justification.
+- Component dependencies follow the documented direction: atoms may compose atoms, molecules may compose atoms and suitable same-layer molecules, organisms may compose lower layers and explicitly owned smaller organisms, templates compose components, and pages compose templates/components. Lower layers must not import higher layers; avoid cycles and use `@components/<layer>/<file>` aliases for cross-layer imports.
+- Atoms and molecules must not directly query Astro collections or own browser persistence. Build-time data adapters already used by a domain molecule may remain there; route state, `localStorage`, and persistent-shell synchronization belong in organisms or dedicated utilities with an explicit runtime contract.
+- In Astro, SSR-only output must remain usable without hydration. Add `client:load`, `client:visible`, or `client:only="svelte"` only when interactivity requires it. On pure SSR paths, use `astro-icon`; `@iconify/svelte` does not render icons during SSR.
+- In Svelte, follow the syntax already used by the file (runes or legacy) and never mix the two modes in one component. Use template-literal classes when conditional class names interact with scoped unused-CSS analysis; preserve valid `class:` directives elsewhere. In Stylus, keep modifier and element selectors as separate selectors where `&` would concatenate them incorrectly.
+- Keep designs original and differentiated. `research/` is reference material only: do not copy its schemas, names, defaults, algorithms, component compositions, or visual layouts. Do not edit, install, build, format, or commit inside research checkouts; descendant `AGENTS.md` files there are upstream artifacts, not Shirone instructions.
+- Persistent shell elements outside `#swup-container` are not rerendered by Swup. Logic that reacts to route changes must use the appropriate Swup lifecycle hook (`content:replace`, `page:view`, or event delegation) and must be tested for both direct load and client navigation.
 
-## 3) Build, Lint, Format, Check, Test
+## Required documents
 
-### Core scripts
-```bash
-pnpm dev
-pnpm build
-pnpm preview
-pnpm check
-pnpm type-check
-pnpm format
-pnpm lint
-```
+- `rules/pitfalls.md` — Svelte/Astro integration, Stylus, cache, and testing pitfalls.
+- `rules/css-important.md` — allowed CSS `!important` ownership boundaries, comments, and validation.
+- `rules/project-rules.md` — project conventions and commit policy.
+- `docs/atomic-structure.md` — component layering and ownership.
+- `docs/m3e-standard.md` — M3E tokens and component standard.
+- `docs/markdown-extensions.md` — Markdown plugin pipeline, Typography boundaries, cache refresh, and validation.
+- `docs/markdown-on-demand-loading.md` — required before changing Markdown feature probes, conditional styles, runtime loading, or Swup resource lifecycles.
+- `docs/markdown-syntax-manifest.md` — required before adding, changing, or retiring custom author-facing Markdown syntax.
+- `docs/sidebar-system.md` — sidebar orchestration, page filtering, and Swup synchronization.
+- `src/config/README.md` — required before changing configuration types or values.
+- The nearest nested `AGENTS.md` — local rules are additive and narrower than this file.
 
-### Script behavior
-- `pnpm dev`: Astro dev server.
-- `pnpm build`: `node scripts/update-anime.mjs && astro build && pagefind --site dist && node scripts/compress-fonts.js`.
-- `pnpm preview`: preview the production build.
-- `pnpm check`: Astro diagnostics (`astro check`).
-- `pnpm type-check`: TS diagnostics (`tsc --noEmit --isolatedDeclarations`).
-- `pnpm format`: Prettier write on `./src`.
-- `pnpm lint`: `eslint ./src --fix`.
+## Validation
 
-### Lint caveat
-- Repo has a lint script, but no local ESLint dependency/config was found.
-- Treat `pnpm lint` as environment-dependent unless ESLint is explicitly added.
+- Common commands: `pnpm.cmd astro dev --port 4321`, `npx.cmd astro check`, `npx.cmd playwright test tests/site/<spec>.spec.ts`, `pnpm.cmd check:manifest`, `pnpm.cmd exec biome ci ./src`, `pnpm.cmd type-check`, and `pnpm.cmd build`.
+- `pnpm.cmd lint` and `pnpm.cmd format` include `--write`; do not use them as read-only review checks. Use `pnpm.cmd exec biome ci ./src` when validation must not modify files.
+- Run the smallest relevant Playwright fragment plus `tests/site/a11y.spec.ts` for page/component changes. Run album, icon, or motion fragments when those domains change. The visual suite uses local snapshots that are ignored by Git; update them only after confirming every difference is intentional, and do not absorb unrelated page-height or environment drift.
+- If Stylus/Svelte changes appear stale in dev, clear `node_modules/.vite` and `.astro` and restart. If a Markdown/rehype/remark change appears stale, clear `.astro/data-store.json` and restart.
+- Wait for theme initialization (`--mc-primary`) and `onload-animation` convergence before asserting computed styles or running accessibility checks.
 
-### Test status
-- No Jest/Vitest test suite is configured.
-- Existing test-like script is utility-only:
+## Repository context
 
-```bash
-pnpm test-font-compression
-```
-
-- Do not present this as unit/integration testing.
-
-## 4) Single-Test / Single-File Guidance
-There is currently no true single-test command.
-
-Use project-wide validation instead:
-
-```bash
-pnpm check
-pnpm type-check
-```
-
-Agent rule:
-- If asked to run one test, state that no test runner exists.
-- Suggest adding Vitest if per-test execution is required.
-
-## 5) Repository Utility Scripts
-```bash
-pnpm new-post <filename>
-pnpm sync-content
-pnpm init-content
-pnpm update-anime
-pnpm update-bangumi
-pnpm update-bilibili
-pnpm compress-fonts
-pnpm submit
-```
-
-These are content/data maintenance tasks.
-
-## 6) Code Style and Conventions
-
-### Formatting (from `.prettierrc`)
-- `printWidth: 80` (CSS override: 200)
-- `tabWidth: 4`, `useTabs: true` (CSS override: 2 spaces, no tabs)
-- `semi: true`, `singleQuote: false`, `trailingComma: "all"`
-- `endOfLine: "crlf"`
-- Plugins: `prettier-plugin-astro`, `prettier-plugin-svelte`
-
-Do not hand-format against these settings.
-
-### Imports
-- Prefer TS path aliases in `tsconfig.json`:
-  - `@/*`, `@components/*`, `@utils/*`, `@i18n/*`, `@assets/*`, `@layouts/*`, `@constants/*`
-- Use `import type` for type-only imports.
-- In `.astro`, keep imports at top of frontmatter.
-- Prefer nearby relative imports only for same-folder/sibling components.
-
-### Naming
-- Astro components: `PascalCase.astro`.
-- TS utilities/modules: `kebab-case.ts`.
-- Variables/functions: `camelCase`.
-- Constants: `SCREAMING_SNAKE_CASE`.
-- Types/interfaces/enums: `PascalCase`.
-
-### Types and validation
-- Keep explicit typing in TS and Astro frontmatter.
-- Follow existing Zod schema style in `src/content.config.ts`.
-- Use typed props interfaces in components.
-- Avoid `any`; if unavoidable, constrain and document why.
-
-### Astro/Svelte patterns
-- Use frontmatter `---` and destructure `Astro.props` early.
-- Use `class:list` for conditional classes.
-- Keep heavy logic in `src/utils/*`, not in templates.
-- For shared text, route through i18n keys in `src/i18n/*`.
-
-### Error handling
-- Never use empty catch blocks.
-- Existing code favors `console.error`/`console.warn` + graceful fallback.
-- Prefer degraded UX over hard crash for non-critical runtime failures.
-
-### Content rules
-- Posts/spec live under `src/content/posts` and `src/content/spec`.
-- Respect schema fields (`title`, `published`, `draft`, `tags`, `category`, etc.).
-- Keep frontmatter values compatible with `src/content.config.ts` schema.
-
-## 7) Agent Change Scope
-- Keep edits focused; avoid opportunistic refactors.
-- Match existing architecture/patterns before introducing new ones.
-- Do not add dependencies unless clearly necessary.
-- Keep comments minimal and only for non-obvious intent.
-- Do not commit unless the user explicitly asks.
-
-## 8) Cursor/Copilot Rule Files
-Checked paths:
-- `.cursorrules`
-- `.cursor/rules/`
-- `.github/copilot-instructions.md`
-
-Current repository status:
-- No Cursor rule files found.
-- No Copilot instructions file found.
-
-If these files are added later, treat them as higher-priority local instructions and merge this guide accordingly.
-
-## 9) Recommended Validation Sequence
-For code changes, run:
-
-```bash
-pnpm format
-pnpm check
-pnpm type-check
-pnpm build
-```
-
-If maintainers require lint, ensure ESLint is available/configured first.
-
-## 10) Evidence Basis
-This guide is based on `package.json`, `tsconfig.json`, `.prettierrc`, `.prettierignore`, `astro.config.mjs`, and representative files under `src/components`, `src/utils`, and `src/content.config.ts`.
+- Sidebar configuration flows from `src/config/sidebarConfig.ts` through the `componentMap` registry in `src/components/organisms/SideBar.astro` to widget rendering. `SidebarPage` in `src/types/sidebarConfig.ts` is authoritative for page identifiers (`home`, `archive`, `friends`, `moments`, `anime`, `compass`, `albums`, `about`, `categories`, `tags`, `post`). The `pages` filter reads `data-current-page` from `#swup-container` on SSR and after Swup replacement.
+- Motion primitives live in `src/utils/motion.ts` (`fadeOutThenHide`, `flipFromRect`, `revealIn`, `collapse`); `prefersReducedMotion()` must be honored.
+- Atom inventory and count are authoritative only in `src/components/atoms/manifest.json`; do not maintain a second hard-coded count in instructions or prose.
+- Canonical page templates are under `src/layouts/`; `src/components/layout/` is not a parallel template layer.

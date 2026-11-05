@@ -62,7 +62,8 @@ export const musicConfig: MusicConfig = {
 		server: "netease",
 		type: "playlist",
 		id: "13661967857",
-		api: "https://meting.mysqil.com/api?server=:server&type=:type&id=:id&auth=:auth&r=:r",
+		// 原 meting.mysqil.com 域名已失效（DNS 无法解析），切换到 injahow 公共镜像
+		api: "https://api.injahow.cn/meting/?server=:server&type=:type&id=:id&r=:r",
 	},
 	defaultVolume: 0.7,
 	defaultMode: "sequence",

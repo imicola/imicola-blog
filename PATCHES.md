@@ -16,6 +16,8 @@
 | 7 | `src/layouts/Layout.astro` | `<head>` 注入 umami 统计脚本（website-id `08c978b1-650d-45ef-ac92-9e4ea0a0ff90`，自 Mizuki 迁移） |
 | 8 | `src/config/fontConfig.ts` | body/cjk 角色替换为 MapleMono（`src/assets/fonts/MapleMono-SC-NF-Regular.ttf` / `MapleMono-NF-CN-Medium.ttf`），mono 保留 JetBrains Mono |
 | 9 | 配置目录 `src/config/*` | 站点身份/导航/番剧/公告/音乐等业务配置改写为 imicola 值（非结构性魔改，升级冲突时以业务值优先重放） |
+| 10 | `src/utils/mermaid.ts` | 修 Mermaid 全站不渲染 bug：① 运行时 `await import("../styles/mermaid.css")` 改为模块顶部静态副作用 import——当前构建链（Astro 7 / rolldown-vite）下动态 import 的 `src/styles/*.css` 会出现在 chunk 依赖表里却不被输出成文件，导致 preload 404、mermaid 初始化整体失败；② `parseSvg` 增加严格 XML 解析失败后的 `text/html` 回退——Mermaid htmlLabels 模式会把标签内 `<br/>` 输出为未闭合 `<br>`，XML 解析必报 "invalid SVG markup"（含 `<br/>` 的图全部渲染失败） |
+| 11 | `src/utils/fancybox-handler.ts` | 同 #10①：`await import("../styles/fancybox-custom.css")` 改为静态副作用 import（同样症状：CSS 未输出、灯箱初始化失败） |
 
 ## 行为约定（与 Mizuki 一致，验收基线）
 

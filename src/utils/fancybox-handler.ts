@@ -9,6 +9,9 @@ import {
 	getDefaultFancyboxConfig,
 } from "./fancybox-config";
 
+// 静态副作用导入：运行时 `await import("...css")` 在当前构建链下会引用未被输出的 CSS 资产并导致加载失败。
+import "../styles/fancybox-custom.css";
+
 // Fancybox 模块类型
 // biome-ignore lint/suspicious/noExplicitAny: Fancybox 模块动态加载，无精确类型
 type FancyboxModule = any;
@@ -108,7 +111,6 @@ export class FancyboxHandler {
 		const mod = await import("@fancyapps/ui");
 		this.Fancybox = mod.Fancybox;
 		await import("@fancyapps/ui/dist/fancybox/fancybox.css");
-		await import("../styles/fancybox-custom.css");
 	}
 
 	/**

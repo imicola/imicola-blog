@@ -1,5 +1,9 @@
 import type { MermaidInteractionController } from "./mermaid-interaction";
 
+// 静态副作用导入：本模块仅在页面含 Mermaid 语法时被动态加载，样式随 chunk 首次命中注入。
+// 运行时 `await import("...css")` 在当前构建链下会引用未被输出的 CSS 资产并导致初始化整体失败。
+import "../styles/mermaid.css";
+
 const DIAGRAM_SELECTOR = ".markdown-mermaid[data-mermaid]";
 const THEME_PROPERTIES = [
 	"--mc-primary",
@@ -233,14 +237,22 @@ function createThemeVariables(values: Record<string, string>, isDark: boolean) {
 }
 
 function parseSvg(svg: string): SVGElement {
-	const documentNode = new DOMParser().parseFromString(svg, "image/svg+xml");
-	if (documentNode.querySelector("parsererror")) {
-		throw new Error("Mermaid returned invalid SVG markup");
+	const parser = new DOMParser();
+	const xmlDocument = parser.parseFromString(svg, "image/svg+xml");
+	let svgElement: SVGSVGElement | null = null;
+	if (!xmlDocument.querySelector("parsererror")) {
+		const root = xmlDocument.documentElement;
+		if (root.tagName.toLowerCase() === "svg") svgElement = root;
 	}
-
-	const svgElement = documentNode.documentElement;
-	if (svgElement.tagName.toLowerCase() !== "svg") {
-		throw new Error("Mermaid did not return an SVG element");
+	if (!svgElement) {
+		// Mermaid 在 htmlLabels 下会把标签中的 <br/> 输出为未闭合的 HTML <br>，
+		// 严格 XML 解析会拒绝这类合法 SVG；退回 HTML 解析并提取 <svg> 节点。
+		const htmlDocument = parser.parseFromString(svg, "text/html");
+		const candidate = htmlDocument.querySelector("svg");
+		if (!candidate) {
+			throw new Error("Mermaid returned invalid SVG markup");
+		}
+		svgElement = document.importNode(candidate, true) as SVGSVGElement;
 	}
 
 	svgElement.removeAttribute("height");
@@ -251,6 +263,7 @@ function parseSvg(svg: string): SVGElement {
 	}
 	svgElement.setAttribute("data-mermaid-svg", "");
 
+	if (svgElement.ownerDocument === document) return svgElement as unknown as SVGElement;
 	return document.importNode(svgElement, true) as unknown as SVGElement;
 }
 
@@ -388,7 +401,6 @@ export function scheduleMermaidRender(): void {
 }
 
 async function initializeMermaidDiagrams(): Promise<void> {
-	await import("../styles/mermaid.css");
 	lastThemeSignature = readTheme().signature;
 
 	const themeObserver = new MutationObserver(() => {

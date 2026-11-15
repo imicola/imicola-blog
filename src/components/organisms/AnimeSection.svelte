@@ -24,7 +24,15 @@ import type { AnimeItem } from "../../data/anime";
 
 export type AnimeLayoutMode = "grid" | "list";
 
-let { animes = [] as AnimeItem[] }: { animes?: AnimeItem[] } = $props();
+let {
+	animes = [] as AnimeItem[],
+	title = i18n(I18nKey.anime),
+	subtitle = i18n(I18nKey.animeBanner),
+}: {
+	animes?: AnimeItem[];
+	title?: string;
+	subtitle?: string;
+} = $props();
 
 const ANIME_PAGE_SIZE = 12;
 const ANIME_LAYOUT_KEY = "shirone:anime-layout-mode";
@@ -112,7 +120,9 @@ function switchLayoutMode(mode: AnimeLayoutMode) {
 		/* Ignore local storage access failure */
 	}
 	requestAnimationFrame(() => {
-		cards.forEach((card, index) => flipFromRect(card, before[index], 400));
+		cards.forEach((card, index) => {
+			flipFromRect(card, before[index], 400);
+		});
 	});
 }
 
@@ -135,7 +145,11 @@ $effect(() => {
 	if (s) params.set("status", s);
 	if (q.trim()) params.set("q", q.trim());
 	const qs = params.toString();
-	history.replaceState(null, "", qs ? `?${qs}` : window.location.pathname);
+	history.replaceState(
+		history.state,
+		"",
+		qs ? `?${qs}` : window.location.pathname,
+	);
 });
 
 onMount(() => {
@@ -153,8 +167,8 @@ onMount(() => {
 <Card color="var(--card-bg)" radius="l" class="anime-section px-8 py-6">
 	<PageHeader
 		icon="material-symbols:live-tv-outline-rounded"
-		title={i18n(I18nKey.anime)}
-		subtitle={i18n(I18nKey.animeBanner)}
+		{title}
+		{subtitle}
 	/>
 
 	{#if animes.length > 0}

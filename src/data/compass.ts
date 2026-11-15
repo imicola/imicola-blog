@@ -35,5 +35,4 @@ export interface CompassShelf {
 	entries: CompassEntry[];
 }
 
-export const compassData: CompassShelf[] = [
-];
+export const compassData: CompassShelf[] = [];

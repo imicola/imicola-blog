@@ -1,7 +1,7 @@
 # 项目规则
 
 > Shirone 项目的硬性约定与工作流。新增代码前必读。
-> 配套文档：`rules/pitfalls.md`（踩坑）、`rules/css-important.md`（CSS `!important` 使用规范）、`rules/component-api.md`（组件 API 规范）、`rules/a11y.md`（无障碍与键盘交互）、`rules/visual-regression.md`（视觉回归）、`docs/m3e-standard.md`（组件标准）、`docs/atomic-structure.md`（分层规范）、`docs/markdown-extensions.md`（Markdown 插件、样式与缓存契约）、`docs/performance-guidelines.md`（性能架构指南）、`rules/performance-rules.md`（性能开发硬性规则）。
+> 配套文档：`rules/pitfalls.md`（踩坑）、`rules/css-important.md`（CSS `!important` 使用规范）、`rules/component-api.md`（组件 API 规范）、`rules/a11y.md`（无障碍与键盘交互）、`rules/visual-regression.md`（视觉回归）、`rules/ai-skills.md`（AI skills 维护）、`docs/ai-skills-maintenance.md`（skills 操作手册）、`docs/m3e-standard.md`（组件标准）、`docs/atomic-structure.md`（分层规范）、`docs/markdown-extensions.md`（Markdown 插件、样式与缓存契约）、`docs/performance-guidelines.md`（性能架构指南）、`rules/performance-rules.md`（性能开发硬性规则）。
 
 ---
 
@@ -139,3 +139,29 @@ npx.cmd playwright test      # site 级全量测试
 3. **动效自律与平衡**：全站过渡必须走 M3E 动效令牌，兼顾切页平滑滚动与高帧率，严格支持 `prefers-reduced-motion` 降级；
 4. **零额外负担与纯净构建**：可选功能关闭时 0 DOM / 0 请求 / 0 bundle 增加，构建期零外部网络强依赖；
 5. **量化验证**：改动后执行 `pnpm.cmd run perf:measure`，确保 LCP < 500ms、CLS < 0.05。
+
+---
+
+## 12. npm 包模式（shirones integration）同步义务
+
+Shirone 以两种形态运行：**源码模式**（本仓库 checkout，`astro.config.mjs` 只有 `integrations: [shirones()]` 一行，integration 的 in-repo 检测把 config/data/content 指回 `src/` 自身）与 **npm 包模式**（发布为 `shirones`，同一个 integration 在用户项目里重建配置并注入路由）。两种形态共用唯一的配置驱动 `src/integration/index.ts`——**改主题源码时务必检查该文件与 `src/config/integrationsConfig.ts` 是否也要跟上**。
+
+**必读**：`docs/npm-package-mode.md`、`docs/packaging-contract.md`。
+
+同步检查清单（改动哪项就查哪项）：
+
+1. **新增接线一律进 `src/integration/index.ts`，新增选项值进 `src/config/integrationsConfig.ts`**（`astro.config.mjs` 不再承载任何配置）：
+   - 新增 `vite.resolve.alias` → 同步进 `createAliases()`；
+   - 新增 integrations → 同步进 `createBundledIntegrations()`；
+   - 新增 vite 插件 → 同步进 `updateConfig` 的 `vite.plugins` 数组（按 `paths.isThemeRepo` 判断是否两种模式都需要）；
+   - svelte `compilerOptions`（cssHash / warningFilter 等）→ 同步；
+   - `markdown.processor` 来自 `src/utils/markdown-processor.mjs`，两种模式共用，改插件顺序/集合会自动生效。
+2. **路径别名三处一致**：`@/`、`@components/` 等别名出现在 `index.ts#createAliases`、`overlay.ts#ALIAS_MAP`、`load-config.ts#ALIAS_MAP` 三处，新增/改名要三处同步。
+3. **禁用 `process.cwd()` 读主题自有文件**：包模式下 cwd 是用户项目根，读不到 `src/`。主题自有文件用 bundler 内联（`import.meta.glob(..., { query: "?raw" })`、`?url`）或基于 `import.meta.url`/`findPackageRoot()` 定位；只有「读取用户项目内容」的代码才允许 `process.cwd()`。
+4. **新增组件/config/layout 要遵守 overlay 规则**（`src/integration/vite/overlay.ts`）：`src/components/**`、`src/layouts/**`、`src/config/*`、`src/data/*` 允许用户同路径覆写；`index.*` barrel 不可覆写。
+5. **新增 Markdown 语法要登记 manifest**：`src/plugins/markdown/manifest.json` 的 `syntaxes` 与 `stylesheetPacks` 都要加；packs 引用的样式必须是 `src/styles/**/*.css`（`markdown-assets.ts` 只 glob `*.css`，`.styl` 会让构建抛错）。
+6. **示例文章里的仓库路径**：`@[code-tree](/src/config)`、`@include: src/content/...` 等源码态路径，在包模式要由 `shirones` 仓库的 `prepare-templates.mjs` rewrite 成 `shirones/...`；新增此类示例时在 `shirones` 仓库同步加 rewrite。
+7. **新增依赖**：主题运行时依赖必须进 `package.json` dependencies（发布会内联进 tarball），不能只装 devDependencies。
+8. **新增 `src/` 顶层目录自动进包**：`shirones` 仓库的 `scripts/config.mjs#PACKAGE_SRC_EXCLUDES` 现在是排除集（排除 `content`、`integration`），其余顶层目录一律自动复制，新增目录无需改动（先例：上游 `7ca4118` 引入 `src/user/user-config.ts`，当年还是白名单 `PACKAGE_SRC_DIRS` 漏加，导致包模式 `astro:config:setup` 解析失败；改为排除集后该问题不再可能）。仅当新增目录属于 `content/`（用户内容，走模板）或 `integration/`（主题接线，shirones 会重建）时才需额外处理。
+
+> 参考先例：上游 `feb8803` 给 `astro.config.mjs` 加了 `@shirone/iconify-offline*` 两个 alias 并改写 `Icon.svelte` 的 import，导致包模式一度解析失败；修复是镜像 alias 到 `createAliases()`（`createRequire` 定位包内 dist）。

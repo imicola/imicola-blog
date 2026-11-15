@@ -5,6 +5,7 @@ import type {
 	AnimeSourceKind,
 	ResolvedAnimeOptions,
 } from "../types/animeConfig.ts";
+import { withUserConfig } from "../utils/config-overlay.ts";
 
 /**
  * ─────────────────────────────────────────────────────────────────────────────
@@ -37,9 +38,11 @@ import type {
  *   4. 终端执行 `pnpm.cmd anime:sync --provider bilibili` 生成快照。
  * ─────────────────────────────────────────────────────────────────────────────
  */
-export const animeConfig: AnimeConfig = {
-	/** 是否启用番剧页（仅控制页面渲染，不发起任何外部网络连接） */
+export const animeConfig: AnimeConfig = withUserConfig("anime", {
+	/** 是否启用番剧页；false 时导航入口同步隐藏，访问 /anime/ 跳转 404 */
 	enable: true,
+	title: "$t:anime",
+	description: "$t:animeBanner",
 
 	/** 主数据源选择 */
 	source: {
@@ -87,7 +90,7 @@ export const animeConfig: AnimeConfig = {
 		staleAfterDays: 30,
 		keepLastValid: true,
 	},
-};
+});
 
 const SAFE_FILENAME_PATTERN = /^[a-zA-Z0-9_-]+\.json$/;
 

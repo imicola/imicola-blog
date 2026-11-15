@@ -1,4 +1,5 @@
 import type { TimelineConfig } from "@/types/timelineConfig";
+import { withUserConfig } from "../utils/config-overlay.ts";
 
 /**
  * 时间线页行为与展示配置。
@@ -11,8 +12,10 @@ import type { TimelineConfig } from "@/types/timelineConfig";
  *
  * 注：时间线的具体节点数据（标题、日期、经历描述、要点列表、关联链接等）请在 `src/data/timeline.ts` 中维护。
  */
-export const timelineConfig: TimelineConfig = {
+export const timelineConfig: TimelineConfig = withUserConfig("timeline", {
 	enable: true,
+	title: "$t:timeline",
+	description: "$t:timelineBanner",
 	categories: [
 		{
 			key: "milestone",
@@ -42,4 +45,4 @@ export const timelineConfig: TimelineConfig = {
 	],
 	order: "desc",
 	// disabledTitles: [],
-};
+});

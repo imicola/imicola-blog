@@ -4,10 +4,13 @@ import { expect, test } from "@playwright/test";
 
 const POST_PATH = "/posts/markdown-enhancements/";
 
+/** Marks the single tree the current axe pass is scoped to. */
+const AXE_SCOPE_ATTRIBUTE = "data-code-tree-axe-scope";
+
 async function openPost(page: Page) {
 	await page.goto(POST_PATH, { waitUntil: "domcontentloaded" });
 	await page.waitForFunction(() =>
-		document.documentElement.style
+		getComputedStyle(document.documentElement)
 			.getPropertyValue("--mc-primary")
 			.trim()
 			.startsWith("#"),
@@ -169,12 +172,39 @@ test.describe("Markdown interactive code trees", () => {
 		expect(styles.borderRadius).toBe("16px");
 		expect(styles.activeBtnRadius).toBe("8px");
 
-		// Run accessibility check
-		const results = await new AxeBuilder({ page })
-			.include(".custom-md .m3-code-tree")
-			.disableRules(["color-contrast"])
-			.analyze();
-		expect(results.violations).toEqual([]);
+		// Run accessibility check. This post renders two trees: a 217-node one and
+		// a 22,608-node one (2,667 code lines). axe charges for every matched
+		// root, so scanning both together costs ~140s and blows the budget.
+		// `include` is evaluated with native querySelectorAll, so Playwright
+		// pseudo-classes do not work — mark each tree in turn and scope to the
+		// single marked element instead.
+		const trees = page.locator(".custom-md .m3-code-tree");
+		const treeCount = await trees.count();
+		expect(treeCount).toBeGreaterThan(0);
+		for (let index = 0; index < treeCount; index += 1) {
+			const tree = trees.nth(index);
+			const nodeCount = await tree.evaluate(
+				(element) => element.querySelectorAll("*").length,
+			);
+			// ~7ms per node on a loaded runner, with headroom for cold CI.
+			test.setTimeout(Math.max(60_000, nodeCount * 25));
+			await tree.evaluate((element, attribute) => {
+				element.setAttribute(attribute, "");
+			}, AXE_SCOPE_ATTRIBUTE);
+			const results = await new AxeBuilder({ page })
+				.include(`.custom-md .m3-code-tree[${AXE_SCOPE_ATTRIBUTE}]`)
+				.disableRules(["color-contrast"])
+				.analyze();
+			expect(
+				results.violations.map((violation) => ({
+					id: violation.id,
+					nodes: violation.nodes.length,
+				})),
+			).toEqual([]);
+			await tree.evaluate((element, attribute) => {
+				element.removeAttribute(attribute);
+			}, AXE_SCOPE_ATTRIBUTE);
+		}
 	});
 
 	test("supports narrow mobile viewport layout without horizontal page overflow", async ({
@@ -293,5 +323,149 @@ test.describe("Markdown interactive code trees", () => {
 		expect(pageScrollAfter).toBe(pageScrollBefore);
 
 		await expect(nav).toBeVisible();
+	});
+
+	test("supports modal fullscreen expand, keyboard escape and focus restore", async ({
+		page,
+	}) => {
+		const codeTrees = await openPost(page);
+		const firstTree = codeTrees.first();
+		const expandBtn = firstTree.locator(".m3-code-tree__expand-btn");
+		await expect(expandBtn).toBeVisible();
+		const layoutBefore = await page.evaluate(() => {
+			const container = document.querySelector<HTMLElement>("#swup-container");
+			const codeTree = document.querySelector<HTMLElement>(".m3-code-tree");
+			return {
+				containerLeft: container?.getBoundingClientRect().left ?? 0,
+				documentHeight: document.documentElement.scrollHeight,
+				codeTreeHeight: codeTree?.getBoundingClientRect().height ?? 0,
+			};
+		});
+
+		// Click expand button to open dialog
+		await expandBtn.click();
+
+		const dialog = page.locator("dialog.m3-code-tree-dialog");
+		await expect(dialog).toBeVisible();
+		await expect(dialog).toHaveAttribute("open", "");
+		const layoutWhileOpen = await page.evaluate(() => {
+			const container = document.querySelector<HTMLElement>("#swup-container");
+			const placeholder = document.querySelector<HTMLElement>(
+				".m3-code-tree-placeholder",
+			);
+			return {
+				containerLeft: container?.getBoundingClientRect().left ?? 0,
+				documentHeight: document.documentElement.scrollHeight,
+				placeholderHeight: placeholder?.getBoundingClientRect().height ?? 0,
+			};
+		});
+		expect(layoutWhileOpen.containerLeft).toBeCloseTo(
+			layoutBefore.containerLeft,
+			1,
+		);
+		expect(layoutWhileOpen.documentHeight).toBeGreaterThanOrEqual(
+			layoutBefore.documentHeight,
+		);
+		expect(layoutWhileOpen.placeholderHeight).toBeCloseTo(
+			layoutBefore.codeTreeHeight,
+			1,
+		);
+
+		// Verify dialog contents and file switching inside dialog
+		const dialogTree = dialog.locator(".m3-code-tree");
+		await expect(dialogTree).toBeVisible();
+
+		const fileButtons = dialog.locator(".m3-code-tree__file-btn");
+		await fileButtons.nth(1).click();
+		const panels = dialog.locator(".m3-code-tree__panel");
+		await expect(panels.nth(1)).toBeVisible();
+		await expect(panels.nth(0)).toBeHidden();
+
+		// Press Escape to close modal
+		await page.keyboard.press("Escape");
+		await expect(dialog).toBeHidden();
+
+		// Verify focus restored to expand button
+		await expect(expandBtn).toBeFocused();
+		await expect(expandBtn).toHaveAttribute(
+			"aria-label",
+			await expandBtn.getAttribute("data-expand-label"),
+		);
+		await expect(expandBtn).toHaveAttribute(
+			"title",
+			await expandBtn.getAttribute("data-expand-label"),
+		);
+		await expect(
+			expandBtn.locator(".m3-code-tree__icon-expand"),
+		).not.toHaveClass(/hidden/);
+		await expect(expandBtn.locator(".m3-code-tree__icon-collapse")).toHaveClass(
+			/hidden/,
+		);
+
+		// Verify tree restored into main document flow
+		await expect(firstTree).toBeVisible();
+		await expect(
+			firstTree.locator(".m3-code-tree__panel").nth(1),
+		).toBeVisible();
+		const layoutAfter = await page.evaluate(() => {
+			const container = document.querySelector<HTMLElement>("#swup-container");
+			return {
+				containerLeft: container?.getBoundingClientRect().left ?? 0,
+				documentHeight: document.documentElement.scrollHeight,
+			};
+		});
+		expect(layoutAfter.containerLeft).toBeCloseTo(
+			layoutBefore.containerLeft,
+			1,
+		);
+		expect(layoutAfter.documentHeight).toBe(layoutBefore.documentHeight);
+	});
+
+	test("uses the full mobile viewport without empty modal columns or rows", async ({
+		page,
+	}) => {
+		await page.emulateMedia({ reducedMotion: "reduce" });
+		await page.setViewportSize({ width: 390, height: 844 });
+		const codeTrees = await openPost(page);
+		await codeTrees.first().locator(".m3-code-tree__expand-btn").click();
+
+		const dialog = page.locator("dialog.m3-code-tree-dialog");
+		await expect(dialog).toBeVisible();
+		const layout = await dialog.evaluate((element) => {
+			const body = element.querySelector<HTMLElement>(".m3-code-tree__body");
+			const nav = element.querySelector<HTMLElement>(".m3-code-tree__nav");
+			const content = element.querySelector<HTMLElement>(
+				".m3-code-tree__content",
+			);
+			const dialogRect = element.getBoundingClientRect();
+			const bodyRect = body?.getBoundingClientRect();
+			const navRect = nav?.getBoundingClientRect();
+			const contentRect = content?.getBoundingClientRect();
+			return {
+				dialogRect,
+				dialogRight: dialogRect.right,
+				viewportWidth: window.innerWidth,
+				pageHasHorizontalOverflow:
+					document.documentElement.scrollWidth > window.innerWidth + 1,
+				bodyFlexDirection: body ? getComputedStyle(body).flexDirection : "",
+				navRect,
+				contentRect,
+				contentMaxHeight: content ? getComputedStyle(content).maxHeight : "",
+				bodyBottom: bodyRect?.bottom ?? 0,
+			};
+		});
+
+		expect(layout.dialogRect.x).toBeCloseTo(0, 1);
+		expect(layout.dialogRect.y).toBeCloseTo(0, 1);
+		expect(layout.dialogRect.width).toBeCloseTo(390, 1);
+		expect(layout.dialogRect.height).toBeCloseTo(844, 1);
+		expect(layout.dialogRight).toBeCloseTo(layout.viewportWidth, 1);
+		expect(layout.pageHasHorizontalOverflow).toBe(false);
+		expect(layout.bodyFlexDirection).toBe("column");
+		expect(layout.navRect?.width).toBeCloseTo(layout.dialogRect.width, 1);
+		expect(layout.navRect?.height).toBeLessThan(layout.dialogRect.height * 0.4);
+		expect(layout.contentRect?.width).toBeCloseTo(layout.dialogRect.width, 1);
+		expect(layout.contentRect?.bottom).toBeCloseTo(layout.bodyBottom, 1);
+		expect(layout.contentMaxHeight).toBe("none");
 	});
 });

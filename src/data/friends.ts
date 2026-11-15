@@ -23,7 +23,8 @@ export const friendsData: FriendItem[] = [
 	{
 		id: 2,
 		title: "imicola library",
-		imgurl: "https://ts1.tc.mm.bing.net/th/id/OIP-C.T-4_tSTEuaJHMqrZtdIN4gHaHa?rs=1&pid=ImgDetMain&o=7&rm=3",
+		imgurl:
+			"https://ts1.tc.mm.bing.net/th/id/OIP-C.T-4_tSTEuaJHMqrZtdIN4gHaHa?rs=1&pid=ImgDetMain&o=7&rm=3",
 		desc: "imicola的知识中心，很多笔记都在这里面",
 		siteurl: "https://imicola.github.io",
 		tags: ["Blog", "Knowledge Base"],

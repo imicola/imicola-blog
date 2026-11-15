@@ -1,6 +1,20 @@
 # build output
 dist/
 
+# integration cache (esbuild config bundles, plugin-mode font subsets)
+.shirones/
+
+# Scratch directories the packaging pipeline creates when it transpiles the
+# theme's TypeScript generators. They should never survive a run; the pattern
+# is here so that an aborted one cannot reach a commit.
+.shirones-ts-*/
+
+# content repository working copy, provenance, and safe cleanup backups
+.content-src/
+.content-backup/
+content.lock.json
+Shirone-Content/
+
 # generated types
 .astro/
 
@@ -31,6 +45,9 @@ yarn.lock
 
 # generated font subsets
 src/assets/fonts/.subset/
+
+# generated local icon collection
+src/generated/local-icon-collections.ts
 *.iml
 
 # anime snapshot data & downloaded covers
@@ -62,3 +79,6 @@ artifacts/lighthouse/*
 .agent/
 temp/
 src/data/bangumi-data.json
+
+# generated AI skills plugin packages
+artifacts/shirone-ai-*

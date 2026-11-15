@@ -7,12 +7,12 @@ import { expect, test } from "@playwright/test";
  * （首页 / 归档 / 关于 / 文章页），覆盖整站语义结构（header/nav/aside landmark）、
  * 内容层（Markdown、GitHub 卡片）与深色模式下的对比度。
  * 说明：
- * - GitHub 卡片（::github 指令）请求被 mock 为固定成功响应，
- *   避免测试环境网络/限流导致卡片停留在 fetch-waiting 骨架屏（假失败或假通过）。
+ * - GitHub 卡片（::github 指令）请求被 mock 为固定成功响应，避免外部配额或网络抖动影响扫描。
  * - 扫描前等待 onload-animation 全部收敛（opacity 1），防止动画中间帧误报。
  * - 断言页面确实处于目标模式，防止主题未应用导致“假通过”。
  */
 const pages = [
+	{ name: "404", path: "/404/" },
 	{ name: "首页", path: "/" },
 	{ name: "首页-网格", path: "/", layout: "grid" },
 	{ name: "归档", path: "/archive/" },
@@ -23,13 +23,17 @@ const pages = [
 	{ name: "技能", path: "/skills/" },
 	{ name: "项目", path: "/projects/" },
 	{ name: "设备展示", path: "/devices/" },
+	{ name: "游戏", path: "/games/" },
 	{ name: "时间线", path: "/timeline/" },
 	{ name: "受保护相册", path: "/albums/EncryptedExample/" },
 	{ name: "关于", path: "/about/" },
 	{ name: "文章页", path: "/posts/guide/" },
 	{ name: "MDX文章页", path: "/posts/mdx-showcase/" },
+	{ name: "系列文章页", path: "/posts/markdown-extended/" },
 	{ name: "分类索引", path: "/categories/" },
 	{ name: "标签索引", path: "/tags/" },
+	{ name: "系列索引", path: "/series/" },
+	{ name: "系列详情", path: "/series/markdown-syntax-guide/" },
 ];
 
 const DISABLED_RULES = ["page-has-heading-one"];
@@ -39,12 +43,11 @@ const modes = [
 	{ name: "dark", theme: "dark", dark: true },
 ];
 
-/** GitHub 卡片 mock 数据（固定成功响应，含全字段） */
 const GITHUB_MOCK = {
 	description: "A static blog template built with Astro.",
 	language: "TypeScript",
 	stargazers_count: 4860,
-	forks: 1243,
+	forks_count: 1243,
 	owner: {
 		avatar_url:
 			"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='12' fill='%236366f1'/></svg>",
@@ -73,10 +76,13 @@ async function openSitePage(
 		}),
 	);
 	await page.goto(path, { waitUntil: "domcontentloaded" });
-	// 等待主题引擎初始化（HCT 动态配色写入 :root）
+	// 等待配色就绪（默认配色为静态 CSS；非默认配色由 HCT 写入 :root）
 	await page.waitForFunction(() => {
 		const root = document.documentElement;
-		return root.style.getPropertyValue("--mc-primary").trim().startsWith("#");
+		return getComputedStyle(root)
+			.getPropertyValue("--mc-primary")
+			.trim()
+			.startsWith("#");
 	});
 	// 等待 onload-animation 全部收敛（跳过 display:none 元素），防止动画中间帧
 	await page.waitForFunction(

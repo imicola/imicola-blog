@@ -1,9 +1,10 @@
 import type { ArticleConfig } from "@/types/articleConfig";
+import { withUserConfig } from "../utils/config-overlay.ts";
 
 /**
  * 文章详情页配置。
  */
-export const articleConfig: ArticleConfig = {
+export const articleConfig: ArticleConfig = withUserConfig("article", {
 	lastUpdated: {
 		// 关闭后不渲染最后更新提示。
 		enable: true,
@@ -30,7 +31,7 @@ export const articleConfig: ArticleConfig = {
 		// 生成海报时是否默认包含文章封面（封面不可用时自动降级为无封面排版）。
 		includeCover: true,
 	},
-};
+});
 
 const MAX_DISCOVERY_COUNT = 6;
 

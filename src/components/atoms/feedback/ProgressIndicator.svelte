@@ -111,9 +111,8 @@ const resolvedWidth = $derived(
 
 // 响应式派生：progress 变化时实时重算（const 只算一次会导致滑块拖动不更新）
 const determinate = $derived(progress !== undefined && progress >= 0);
-const pct = $derived(
-	determinate ? Math.max(0, Math.min(100, progress * 100)) : 0,
-);
+const p = $derived(progress ?? 0);
+const pct = $derived(determinate ? Math.max(0, Math.min(100, p * 100)) : 0);
 // circular：动态尺寸（size 直径 / strokeWidth 厚度），wavy 默认 48（官方 WaveSize）
 const resolvedSize = $derived(size ?? (wavy ? 48 : 40));
 const circCenter = $derived(resolvedSize / 2);
@@ -132,18 +131,11 @@ const wavyLinearWaveLength = $derived(
 const wavyLinearWaveSpeed = $derived(
 	waveSpeed > 0 ? waveSpeed : wavyLinearWaveLength,
 );
+// 实例级唯一 clipId，供 determinate wavy linear 模式裁切可视区域
+const clipId = `pi-wavy-clip-${Math.random().toString(36).slice(2, 9)}`;
+
 // 全宽路径 = 容器宽 + 左右各 2 个波长余量（官方 widthWithExtraPhase）
 const wavyLinearPathW = $derived(resolvedWidth + wavyLinearWaveLength * 2);
-// 振幅 0..1 直接重建路径（官方 scaleY 近似：controlY 按振幅缩放，stroke 保持 4dp）
-const wavyLinearPathD = $derived(
-	buildLinearWavePath(
-		wavyLinearPathW,
-		wavyLinearWaveLength,
-		WAVY_LINEAR_H,
-		strokeWidth,
-		wavyAmp,
-	),
-);
 // pathLength=100 归一化：1px 宽度对应的归一化长度
 const wavyLinearUnitsPerPx = $derived(100 / wavyLinearPathW);
 const wavyCapW = $derived(strokeCap === "butt" ? 0 : strokeWidth / 2);
@@ -154,7 +146,7 @@ const wavyLinearHeadPx = $derived(
 				0,
 				Math.min(
 					resolvedWidth - wavyCapW,
-					Math.max(wavyCapW, progress * resolvedWidth),
+					Math.max(wavyCapW, p * resolvedWidth),
 				),
 			)
 		: 0,
@@ -214,8 +206,8 @@ const wavyAmpTarget = $derived(
 	wavy
 		? determinate
 			? typeof amplitude === "function"
-				? amplitude(progress)
-				: (amplitude ?? officialIndicatorAmplitude(progress))
+				? amplitude(p)
+				: (amplitude ?? officialIndicatorAmplitude(p))
 			: typeof amplitude === "number"
 				? amplitude
 				: 1
@@ -270,6 +262,18 @@ $effect(() => {
 	return cleanup;
 });
 
+// wavy linear 波浪路径（随振幅更新；determinate 模式向左预留一个波长以消除平移闪烁）
+const wavyLinearPathD = $derived(
+	buildLinearWavePath(
+		wavyLinearPathW,
+		wavyLinearWaveLength,
+		WAVY_LINEAR_H,
+		strokeWidth,
+		wavyAmp,
+		determinate ? -wavyLinearWaveLength : 0,
+	),
+);
+
 // wavy circular 星形路径（随振幅 morph）
 const wavyStarD = $derived(
 	buildCircularStarPath({
@@ -298,18 +302,22 @@ const wavyStarD = $derived(
 	        aria-valuenow={determinate ? pct : undefined}
 	        aria-valuemin={determinate ? 0 : undefined}
 	        aria-valuemax={determinate ? 100 : undefined}
-	        style={`--pi-color: ${color}; --pi-track: ${trackColor}; --pi-wave-len: ${-wavyLinearShiftPx}; --pi-wave-dur: ${wavyLinearFlowMs}ms; --pi-wave-shift: ${-wavyLinearWaveLength}px`}
+	        style={`--pi-color: ${color}; --pi-track: ${trackColor}; --pi-wave-dur: ${wavyLinearFlowMs}ms; --pi-wave-shift: ${-wavyLinearWaveLength}px`}
 	    >
 	        {#if determinate}
 	            <svg class="m3-progress__wavy-svg" viewBox={`0 0 ${resolvedWidth} 10`} width="100%" height="10">
+	                <defs>
+	                    <clipPath id={clipId}>
+	                        <rect x="0" y="0" width={wavyLinearHeadPx} height="10" />
+	                    </clipPath>
+	                </defs>
 	                {#if wavyLinearTrackX2 > wavyLinearTrackX1}
 	                    <line x1={wavyLinearTrackX1} x2={wavyLinearTrackX2} y1="5" y2="5" stroke={trackColor} stroke-width={strokeWidth} stroke-linecap={strokeCap}></line>
 	                {/if}
-	                {#if progress > 0}
-	                    <g class="m3-progress__wavy-group">
-	                        <path class:m3-progress__wavy-flow={wavyAmp > 0} d={wavyLinearPathD} pathLength={wavyLinearPathW}
-	                              fill="none" stroke={color} stroke-width={strokeWidth} stroke-linecap={strokeCap}
-	                              stroke-dasharray={`${wavyLinearHeadPx} ${wavyLinearPathW}`}></path>
+	                {#if p > 0}
+	                    <g class="m3-progress__wavy-group" clip-path={`url(#${clipId})`}>
+	                        <path class:m3-progress__wavy-flow={wavyAmp > 0} d={wavyLinearPathD}
+	                              fill="none" stroke={color} stroke-width={strokeWidth} stroke-linecap={strokeCap}></path>
 	                    </g>
 	                {/if}
 	            </svg>
@@ -363,8 +371,8 @@ const wavyStarD = $derived(
                 fill="none"
                 stroke-width={strokeWidth}
                 stroke-linecap={strokeCap}
-                stroke-dasharray={`${Math.max(CIRC * (1 - progress) - gapPx * 2, 0)} ${CIRC}`}
-                stroke-dashoffset={`${-(CIRC * progress + gapPx)}`}
+                stroke-dasharray={`${Math.max(CIRC * (1 - p) - gapPx * 2, 0)} ${CIRC}`}
+                stroke-dashoffset={`${-(CIRC * p + gapPx)}`}
             ></circle>
             <path
                 class="m3-progress__wavy-circ-star"
@@ -375,7 +383,7 @@ const wavyStarD = $derived(
                 stroke={color}
                 stroke-width={strokeWidth}
                 stroke-linecap={strokeCap}
-                stroke-dasharray={`${progress * 100} ${100 - progress * 100}`}
+                stroke-dasharray={`${p * 100} ${100 - p * 100}`}
             ></path>
         {:else}
             <g class="m3-progress__wavy-circ-rotator">
@@ -449,8 +457,8 @@ const wavyStarD = $derived(
                 fill="none"
                 stroke-width={strokeWidth}
                 stroke-linecap="round"
-                stroke-dasharray={`${Math.max(CIRC * (1 - progress) - gapPx * 2, 0)} ${CIRC}`}
-                stroke-dashoffset={`${-(CIRC * progress + gapPx)}`}
+                stroke-dasharray={`${Math.max(CIRC * (1 - p) - gapPx * 2, 0)} ${CIRC}`}
+                stroke-dashoffset={`${-(CIRC * p + gapPx)}`}
             ></circle>
             <circle
                 class="m3-progress__active"
@@ -460,7 +468,7 @@ const wavyStarD = $derived(
                 fill="none"
                 stroke-width={strokeWidth}
                 stroke-linecap="round"
-                stroke-dasharray={`${CIRC * progress} ${CIRC}`}
+                stroke-dasharray={`${CIRC * p} ${CIRC}`}
                 stroke-dashoffset="0"
             ></circle>
         {:else}
@@ -692,12 +700,9 @@ const wavyStarD = $derived(
             pointer-events: none
             transition: left var(--m3e-duration-short) var(--m3e-easing-standard)
 
-        /* determinate 波流动画：官方段 [s, head+s] 平移 -s 组合——dashoffset 前移一个波长
-           同时 translateX 左移一个波长（同时长同步），波浪连续填满 [0, head]，波峰自头部向尾部（左）流动，无空隙 */
+        /* determinate 波流动画：单一路水平平移，周期无缝衔接，由 clipPath 物理限定可视宽度 */
         .m3-progress__wavy-flow
-            animation:
-                m3-progress-wavy-flow-dash var(--pi-wave-dur) linear infinite,
-                m3-progress-wavy-shift var(--pi-wave-dur) linear infinite
+            animation: m3-progress-wavy-shift var(--pi-wave-dur) linear infinite
 
         /* indeterminate 波流动画：路径左移一个波长（--pi-wave-shift 负 px） */
         .m3-progress__wavy-shift
@@ -844,13 +849,6 @@ const wavyStarD = $derived(
         animation-timing-function: linear
     100%
         transform: rotate(1350deg)
-/* linear wavy 波流动画：dashoffset 平移一个波长（--pi-wave-len 负值，normalized 单位） */
-@keyframes m3-progress-wavy-flow-dash
-    from
-        stroke-dashoffset: 0
-    to
-        stroke-dashoffset: var(--pi-wave-len)
-
 /* linear wavy indeterminate 波流动画：路径左移一个波长（--pi-wave-shift 负 px） */
 @keyframes m3-progress-wavy-shift
     from

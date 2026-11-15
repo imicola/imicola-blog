@@ -8,8 +8,10 @@ import {
 	type FancyboxConfig,
 	getDefaultFancyboxConfig,
 } from "./fancybox-config";
-
-// 静态副作用导入：运行时 `await import("...css")` 在当前构建链下会引用未被输出的 CSS 资产并导致加载失败。
+// Keep the custom rules in the same eagerly tracked stylesheet graph as the
+// handler. A dynamic CSS import can make Astro emit a prefetch URL for a
+// below-inlining chunk that is not published, causing a first-open 404.
+// （与上游 33a2bde0 的修复等价，本站 2d90b4d3 已收编）
 import "../styles/fancybox-custom.css";
 
 // Fancybox 模块类型

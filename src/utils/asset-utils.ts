@@ -1,4 +1,5 @@
 import path from "node:path";
+import { getProjectImageLoader } from "./project-images";
 
 const imageFiles = import.meta.glob<ImageMetadata>(
 	"../**/*.{png,jpg,jpeg,webp,avif,svg,gif}",
@@ -9,7 +10,7 @@ function getLocalImageLoader(src: string, basePath = "") {
 	const normalizedPath = path
 		.normalize(path.join("../", basePath, src))
 		.replace(/\\/g, "/");
-	return imageFiles[normalizedPath];
+	return imageFiles[normalizedPath] ?? getProjectImageLoader(src, basePath);
 }
 
 export async function resolveImageAsset(

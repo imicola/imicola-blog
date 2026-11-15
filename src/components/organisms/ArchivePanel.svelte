@@ -14,11 +14,13 @@ import SegmentedButton from "@components/atoms/selection/SegmentedButton.svelte"
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import Icon from "@iconify/svelte";
+import { formatCalendarDate } from "@utils/content-date";
 import { getPostUrlBySlug, url } from "@utils/url-utils";
 import { onMount } from "svelte";
 
 interface Post {
 	slug: string;
+	url?: string;
 	data: {
 		title: string;
 		tags: string[];
@@ -111,15 +113,13 @@ const filtered = $derived(
 );
 
 function formatDate(date: Date) {
-	const month = (date.getMonth() + 1).toString().padStart(2, "0");
-	const day = date.getDate().toString().padStart(2, "0");
-	return `${month}-${day}`;
+	return formatCalendarDate(date).slice(5);
 }
 
 function toItem(post: Post): ArchiveItem {
 	return {
 		title: post.data.title,
-		href: getPostUrlBySlug(post.slug),
+		href: post.url ?? getPostUrlBySlug(post.slug),
 		date: formatDate(post.data.published),
 		category: post.data.category ?? undefined,
 		tags: post.data.tags,
@@ -149,7 +149,7 @@ const groups = $derived.by((): ArchiveGroup[] => {
 		}
 	} else {
 		for (const p of filtered) {
-			add(String(p.data.published.getFullYear()), toItem(p));
+			add(formatCalendarDate(p.data.published).slice(0, 4), toItem(p));
 		}
 	}
 	const list = [...buckets.entries()].map(([id, items]) => ({
@@ -239,7 +239,7 @@ $effect(() => {
 .archive-panel
 	/* 分组切换（SegmentedButton，站内 pill 语言）与下方时间轴之间的节奏 */
 	:global(&__group-switch)
-		margin-bottom: 1rem
+		margin-bottom: var(--m3e-space-4)
 
 	:global(&__empty)
 		display: flex
@@ -251,8 +251,8 @@ $effect(() => {
 
 	:global(&__crumb)
 		min-width: 0
-		padding: 0 0.25rem 0.875rem
-		margin-bottom: 1.25rem
+		padding: 0 var(--m3e-space-1) var(--m3e-space-3)
+		margin-bottom: var(--m3e-space-5)
 		border-bottom: 1px solid var(--outline-variant)
 
 	:global(&__crumb-list)

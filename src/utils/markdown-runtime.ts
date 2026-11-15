@@ -12,6 +12,34 @@ function hasMatch(root: ParentNode, selector: string): boolean {
 
 const runtimeDescriptors: MarkdownRuntimeDescriptor[] = [
 	{
+		selector: "[data-audio-reader]",
+		initialize: async (root) => {
+			const { initAudioReaders } = await import("./audio-reader");
+			initAudioReaders(root);
+		},
+	},
+	{
+		selector: "[data-acfun]",
+		initialize: async (root) => {
+			const { initAcFunEmbeds } = await import("./acfun");
+			initAcFunEmbeds(root);
+		},
+	},
+	{
+		selector: "[data-bilibili]",
+		initialize: async (root) => {
+			const { initBilibiliEmbeds } = await import("./bilibili");
+			initBilibiliEmbeds(root);
+		},
+	},
+	{
+		selector: "[data-youtube]",
+		initialize: async (root) => {
+			const { initYouTubeEmbeds } = await import("./youtube");
+			initYouTubeEmbeds(root);
+		},
+	},
+	{
 		selector: ".expressive-code",
 		initialize: async (root) => {
 			const { initCodeBlockCollapsing } = await import("./code-collapse");
@@ -47,6 +75,13 @@ const runtimeDescriptors: MarkdownRuntimeDescriptor[] = [
 		},
 	},
 	{
+		selector: ".m3-spoiler[data-spoiler]",
+		initialize: async (root) => {
+			const { initSpoilers } = await import("./spoilers");
+			initSpoilers(root);
+		},
+	},
+	{
 		selector: ".katex-display",
 		initialize: async (root) => {
 			const { initKaTeXScrollbars } = await import("./katex-scroll");
@@ -58,6 +93,13 @@ const runtimeDescriptors: MarkdownRuntimeDescriptor[] = [
 		initialize: async () => {
 			const { initMermaidDiagrams } = await import("./mermaid");
 			await initMermaidDiagrams();
+		},
+	},
+	{
+		selector: "[data-github-card][data-github-repo]",
+		initialize: async (root) => {
+			const { initGithubCards } = await import("./github-cards");
+			initGithubCards(root);
 		},
 	},
 ];

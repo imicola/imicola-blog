@@ -5,6 +5,7 @@
 ## 分层总览
 
 ```text
+内容层       src/content + src/data + 用户图片（可选：独立内容仓库）
 源码层       src/content + src/components + src/layouts + src/pages
 配置层       src/config + src/types + astro.config.mjs
 校验层       astro check + manifest check + type-check + Playwright
@@ -18,8 +19,9 @@
 
 | 层 | 位置 | 部署职责 |
 | --- | --- | --- |
+| 内容 | `src/content/`、`src/data/`、`public/images/` | 文章、说说、系列实体、站点数据实体与用户图片。默认随仓库维护；也可迁到独立内容仓库，构建前由 `pnpm content:sync` 物化到同样的路径。边界与双仓 CI 见 `docs/content-separation/README.md`。 |
 | 源码 | `src/` | 页面、布局、组件、Markdown 内容和运行时脚本。组件组合遵循 `atoms → molecules → organisms → layouts → pages`。 |
-| 配置 | `src/config/`、`src/types/`、`astro.config.mjs` | 设置站点 URL、`base` 路径、站点标识、语言、主题和功能开关。部署前优先检查 `src/config/siteConfig.ts` 与 `astro.config.mjs`。 |
+| 配置 | `src/config/`、`src/types/`、`astro.config.mjs` | 设置站点 URL、`base` 路径、站点标识、语言、主题和功能开关。部署前优先检查 `src/config/siteConfig.ts` 与 `astro.config.mjs`。迁到独立内容仓后，这里仍是默认值与配置文档的真源，用户覆盖走内容仓 `config/*.yaml`，见 `docs/content-separation/config-overlay.md`。 |
 | 资产 | `src/assets/`、`public/images/`、`public/assets/` | 保存原始媒体，并在构建前生成可重复创建的响应式派生资源。目录边界见 `docs/asset-pipeline.md`。 |
 | 校验 | `rules/`、`tests/`、`scripts/` | 在发布前检查类型、Astro 产物、组件清单、无障碍和关键页面行为。 |
 | 构建 | `dist/`（生成目录） | `astro build` 生成的静态发布产物。不要手工编辑；每次发布都应从干净构建重新生成。 |
@@ -39,7 +41,9 @@
 
 ## CI 对照
 
-GitHub Actions 的 [`build.yml`](.github/workflows/build.yml) 在 Node.js 22/23 上分别运行 `astro check` 与 `astro build`。本地发布前应至少复现同一组命令；CI 不负责部署到具体托管平台。
+GitHub Actions 的 [`ci.yml`](.github/workflows/ci.yml) 运行 Biome、`astro check`、清单校验与单元测试，并在 Node.js 22/24 上分别执行 `pnpm build`。本地发布前应至少复现同一组命令；`ci.yml` 不负责部署到具体托管平台。
+
+使用独立内容仓库时，另有两个流程：[`deploy.yml.example`](.github/workflows/deploy.yml.example) 是双仓构建与部署的示例（复制为 `deploy.yml` 后补全部署步骤），[`content-validate.yml`](.github/workflows/content-validate.yml) 是供内容仓调用的可复用校验流程。
 
 ## 重要边界
 
@@ -53,6 +57,7 @@ GitHub Actions 的 [`build.yml`](.github/workflows/build.yml) 在 Node.js 22/23 
 
 - [`README.md`](README.md)：首次运行与常用命令
 - [`src/config/README.md`](src/config/README.md)：配置契约
+- [`docs/content-separation/`](docs/content-separation/README.md)：独立内容仓库、物化规则、配置覆盖与双仓 CI
 - [`docs/atomic-structure.md`](docs/atomic-structure.md)：组件分层
 - [`docs/m3e-standard.md`](docs/m3e-standard.md)：M3E 令牌与组件标准
 - [`docs/markdown-extensions.md`](docs/markdown-extensions.md)：Markdown 插件、样式所有权、缓存刷新与验证

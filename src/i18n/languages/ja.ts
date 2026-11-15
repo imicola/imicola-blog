@@ -1,5 +1,5 @@
-import Key from "../i18nKey";
-import type { Translation } from "../translation";
+import Key from "../i18nKey-runtime.mjs";
+import type { Translation } from "../translation.ts";
 
 export const ja: Translation = {
 	[Key.home]: "Home",
@@ -89,6 +89,21 @@ export const ja: Translation = {
 	[Key.devicesViewSpecs]: "詳細を見る",
 	[Key.devicesFeatured]: "おすすめ",
 
+	[Key.games]: "ゲーム",
+	[Key.gamesBanner]: "プレイ中のゲーム——カプセル画像、評価、プレイ時間と短評。",
+	[Key.gamesCounts]: "本",
+	[Key.gamesNoResults]: "条件に一致するゲームはありません",
+	[Key.gamesSearchPlaceholder]: "タイトル、開発元、ジャンルで検索...",
+	[Key.gamesCategoryLabel]: "ゲームカテゴリー",
+	[Key.gamesStatusPlaying]: "プレイ中",
+	[Key.gamesStatusCompleted]: "クリア",
+	[Key.gamesStatusBacklog]: "積みゲー",
+	[Key.gamesStatusWishlist]: "ウィッシュリスト",
+	[Key.gamesViewDetails]: "ストアページ",
+	[Key.gamesFeatured]: "おすすめ",
+	[Key.gamesHours]: "時間",
+	[Key.gamesRating]: "評価",
+
 	[Key.timeline]: "タイムライン",
 	[Key.timelineBanner]: "成長の軌跡、重要な経験、そしてマイルストーンの記録。",
 	[Key.timelineCounts]: "件のマイルストーン",
@@ -136,15 +151,31 @@ export const ja: Translation = {
 
 	[Key.tags]: "タグ",
 	[Key.categories]: "カテゴリ",
+	[Key.series]: "シリーズ",
+	[Key.seriesCount]: "シリーズ",
+	[Key.seriesCounts]: "シリーズ",
+	[Key.seriesStatusOngoing]: "連載中",
+	[Key.seriesStatusCompleted]: "完結",
+	[Key.seriesPartOf]: "この記事はシリーズの一部です",
+	[Key.seriesPart]: "全 {total} 話中 {index} 話目",
+	[Key.seriesPrevInSeries]: "シリーズ内の前の記事",
+	[Key.seriesNextInSeries]: "シリーズ内の次の記事",
+	[Key.seriesViewAll]: "すべてのシリーズを見る",
 	[Key.recentPosts]: "最近の投稿",
 	[Key.tableOfContents]: "目次",
 	[Key.formulaScrollable]: "横スクロール可能な数式",
+	[Key.fieldRequired]: "必須",
+	[Key.fieldOptional]: "任意",
+	[Key.fieldDeprecated]: "非推奨",
 	[Key.codeBlockExpand]: "コードブロックを展開",
 	[Key.codeBlockCollapse]: "コードブロックを折りたたむ",
+	[Key.codeTreeExpand]: "コードツリーを拡大",
+	[Key.codeTreeCollapse]: "拡大表示を閉じる",
 	[Key.announcement]: "お知らせ",
 	[Key.announcementClose]: "告知を閉じる",
 
 	[Key.comments]: "コメント",
+	[Key.commentsEditor]: "コメント本文",
 	[Key.commentsLoading]: "コメントを読み込み中...",
 	[Key.commentsLoadFailed]: "コメントの読み込みに失敗しました",
 	[Key.commentsRequiresJavaScript]:
@@ -172,6 +203,8 @@ export const ja: Translation = {
 	[Key.statsToday]: "今日",
 	[Key.statsYesterday]: "昨日",
 	[Key.statsDaysAgo]: "{days}日前",
+	[Key.profileStatsPageViews]: "ページビュー",
+	[Key.profileStatsVisits]: "訪問数",
 
 	[Key.calendar]: "カレンダー",
 	[Key.calendarBackToday]: "今日に戻る",
@@ -205,6 +238,7 @@ export const ja: Translation = {
 	[Key.musicHidePlaylist]: "プレイリストを非表示",
 	[Key.musicEmpty]: "プレイリストに曲がありません",
 	[Key.musicLoading]: "音楽を読み込み中...",
+	[Key.musicNotRequested]: "まだ要求されていません",
 	[Key.musicNowPlaying]: "再生中: {title}",
 	[Key.musicErrorEmptyPlaylist]: "プレイリストが空です。",
 	[Key.musicErrorSourceUnavailable]: "この曲は再生できません。",
@@ -212,7 +246,7 @@ export const ja: Translation = {
 		"自動再生がブロックされました。再生ボタンを押してください。",
 	[Key.musicErrorInvalidTrack]: "曲の情報が無効です。",
 
-	[Key.themeColor]: "Theme Color",
+	[Key.themeColor]: "テーマカラー",
 	[Key.colorStyle]: "配色スタイル",
 	[Key.colorSpec]: "配色仕様",
 
@@ -246,6 +280,7 @@ export const ja: Translation = {
 	[Key.lastUpdatedNotice]: "最終更新日: {date}（{days}日前）",
 	[Key.lastUpdatedWarning]: "一部の内容は古くなっている可能性があります",
 	[Key.license]: "ライセンス",
+	[Key.reprintSource]: "転載元",
 	[Key.continueReading]: "続きを読む",
 	[Key.relatedReading]: "関連記事",
 	[Key.relatedReadingSubtitle]: "共通するタグとカテゴリから",
@@ -253,7 +288,9 @@ export const ja: Translation = {
 	[Key.randomReadingSubtitle]: "ほかの記事から一貫した基準で選出",
 	[Key.copySuccess]: "クリップボードにコピーしました",
 	[Key.copyLink]: "リンクをコピー",
+	[Key.copySelection]: "コピー",
 	[Key.copyFailed]: "リンクのコピーに失敗しました。手動でコピーしてください。",
+	[Key.sharePageLink]: "ページリンクを共有",
 
 	[Key.shareArticle]: "記事をシェア",
 	[Key.shareArticleDescription]:
@@ -267,6 +304,10 @@ export const ja: Translation = {
 	[Key.retry]: "再試行",
 	[Key.backToTop]: "トップへ戻る",
 	[Key.backToComment]: "コメントへ移動",
+	[Key.notFound]: "404",
+	[Key.notFoundTitle]: "このページは迷子になりました",
+	[Key.notFoundDescription]:
+		"移動したり、アーカイブされたり、そもそも存在しなかったりした可能性があります。",
 	[Key.backToHome]: "ホームへ戻る",
 	[Key.close]: "閉じる",
 	[Key.scanToRead]: "QRコードで続きを読む",

@@ -40,13 +40,21 @@ export async function collectAllText() {
 		for (const ch of commonSymbols) charSet.add(ch);
 	}
 
-	// 2. 收集 src/content/ 下所有文章 Markdown / MDX
+	// 2. 收集 src/content/ 下所有文章 Markdown / MDX，以及 src/data/ 下的页面数据实体
 	if (fontConfig.subsetting?.includeContent ?? true) {
 		const contentFiles = await walkDirectory(join(projectRoot, "src/content"), [
 			".md",
 			".mdx",
 		]);
-		for (const file of contentFiles) {
+		// 项目 / 技能 / 时间线 / 设备 / 友链 / 罗盘的正文都住在 src/data/*.ts，
+		// 与文章一样是会被渲染出来的站点文本。内容分离后这些文件由内容仓提供，
+		// 漏扫的直接后果是子集字体缺字。
+		// （.json 番剧快照不在此列，它受 allowRemoteText 单独管辖。）
+		const dataFiles = await walkDirectory(join(projectRoot, "src/data"), [
+			".ts",
+			".js",
+		]);
+		for (const file of [...contentFiles, ...dataFiles]) {
 			const text = await readFile(file, "utf8");
 			for (const ch of text) {
 				if (ch.charCodeAt(0) > 31) charSet.add(ch);
@@ -68,13 +76,19 @@ export async function collectAllText() {
 		}
 	}
 
-	// 4. 收集 src/config/ 下所有站点配置与导航
+	// 4. 收集 src/config/ 下所有站点配置与导航，以及内容仓生成的用户配置覆盖层
 	if (fontConfig.subsetting?.includeConfig ?? true) {
 		const configFiles = await walkDirectory(join(projectRoot, "src/config"), [
 			".ts",
 			".js",
 		]);
-		for (const file of configFiles) {
+		// external 模式下站点标题、公告、分类标签等文本只存在于覆盖层里，
+		// 默认值那份反而不会被渲染。
+		const userConfigFiles = await walkDirectory(join(projectRoot, "src/user"), [
+			".ts",
+			".js",
+		]);
+		for (const file of [...configFiles, ...userConfigFiles]) {
 			const text = await readFile(file, "utf8");
 			for (const ch of text) {
 				if (ch.charCodeAt(0) > 31) charSet.add(ch);

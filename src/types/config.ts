@@ -1,3 +1,5 @@
+export type { PermalinkConfig } from "./permalinkConfig.ts";
+
 import type { AUTO_MODE, DARK_MODE, LIGHT_MODE } from "@constants/constants";
 import type { TextureConfig } from "./textureConfig";
 
@@ -20,11 +22,66 @@ export type DisplaySettingsConfig = {
 	texture?: boolean;
 };
 
+export type BannerThemeSource = {
+	light: string[];
+	dark: string[];
+};
+
+export type BannerSourceValue = string[] | BannerThemeSource;
+
+export type BannerConfig = {
+	src: {
+		desktop: BannerSourceValue;
+		mobile: BannerSourceValue;
+	};
+	position?: "top" | "center" | "bottom";
+	dim: {
+		enable: boolean;
+		opacity: number;
+	};
+	homeText: {
+		enable: boolean;
+		title: string;
+		/** 首页副标题文本，支持单条字符串或多条交替循环的字符串数组 */
+		subtitle: string | string[];
+		typewriter: {
+			enable: boolean;
+			/** 打字速度（每个字符间隔，毫秒，默认 120） */
+			speed: number;
+			/** 回退反向删除速度（每个字符间隔，毫秒，默认 50） */
+			deleteSpeed?: number;
+			/** 打字完成后等待停顿时间（毫秒，默认 2000） */
+			pauseTime?: number;
+			/** 完成后是否循环播放（默认 true） */
+			loop: boolean;
+		};
+	};
+	carousel: {
+		enable: boolean;
+		interval: number;
+		/** 交叉淡入淡出过渡时长（毫秒，默认 1200） */
+		fadeDuration?: number;
+		/** 运镜呼吸动画模式："ken-burns"（默认，序列运镜）| "zoom-in" | "zoom-out" | "pan-left" | "pan-right" | "none" */
+		animation?:
+			| "ken-burns"
+			| "zoom-in"
+			| "zoom-out"
+			| "pan-left"
+			| "pan-right"
+			| "none";
+	};
+	waves: {
+		enable: boolean;
+	};
+};
+
 export type SiteConfig = {
 	site: string;
 	base?: string;
 	title: string;
 	subtitle: string;
+	/** 默认社交媒体分享预览图（og:image / twitter:image），支持本地相对路径或远程绝对链接。未配置时自动回退为第一张桌面版横幅壁纸。 */
+	ogImage?: string;
 	topAppBar: {
 		/** 桌面端标题与导航内容组的对齐方式。 */
 		contentAlign: TopAppBarContentAlign;
@@ -45,6 +102,9 @@ export type SiteConfig = {
 		| "tr"
 		| "id";
 
+	/** IANA time zone used to interpret precise content timestamps. */
+	timeZone: string;
+
 	themeColor: {
 		hue: number;
 		fixed: boolean;
@@ -56,51 +116,7 @@ export type SiteConfig = {
 	};
 	/** 页面背景纹理系统配置，支持布尔值直接开关或详细配置对象 */
 	texture?: boolean | TextureConfig;
-	banner: {
-		src: {
-			desktop: string[];
-			mobile: string[];
-		};
-		position?: "top" | "center" | "bottom";
-		dim: {
-			enable: boolean;
-			opacity: number;
-		};
-		homeText: {
-			enable: boolean;
-			title: string;
-			/** 首页副标题文本，支持单条字符串或多条交替循环的字符串数组 */
-			subtitle: string | string[];
-			typewriter: {
-				enable: boolean;
-				/** 打字速度（每个字符间隔，毫秒，默认 120） */
-				speed: number;
-				/** 回退反向删除速度（每个字符间隔，毫秒，默认 50） */
-				deleteSpeed?: number;
-				/** 打字完成后等待停顿时间（毫秒，默认 2000） */
-				pauseTime?: number;
-				/** 完成后是否循环播放（默认 true） */
-				loop: boolean;
-			};
-		};
-		carousel: {
-			enable: boolean;
-			interval: number;
-			/** 交叉淡入淡出过渡时长（毫秒，默认 1200） */
-			fadeDuration?: number;
-			/** 运镜呼吸动画模式："ken-burns"（默认，序列运镜）| "zoom-in" | "zoom-out" | "pan-left" | "pan-right" | "none" */
-			animation?:
-				| "ken-burns"
-				| "zoom-in"
-				| "zoom-out"
-				| "pan-left"
-				| "pan-right"
-				| "none";
-		};
-		waves: {
-			enable: boolean;
-		};
-	};
+	banner: BannerConfig;
 	/** Markdown 正文图片处理配置。 */
 	imageOptimization?: {
 		/** 添加 `referrerpolicy="no-referrer"` 的远程图片域名，支持 `*.example.com` 通配符。 */
@@ -143,6 +159,33 @@ export type LicenseConfig = {
 	url: string;
 };
 
+/** 单篇文章 frontmatter 的版权覆写；省略字段回退到全站 licenseConfig。 */
+export type LicenseOverride = Partial<LicenseConfig> & {
+	/** 作者名，或带链接的作者对象；缺省回退到 profileConfig.name。 */
+	author?: string | LicenseAuthorInput;
+	/** 转载来源链接；留空表示原创。 */
+	source?: string;
+};
+
+/** 文章级版权覆写：对象写法，或用字符串简写许可证名称。 */
+export type LicenseOverrideInput = LicenseOverride | string;
+
+/** 文章版权卡片中的作者信息。 */
+export type LicenseAuthorInput = {
+	name?: string;
+	url?: string;
+};
+
+/** 已解析的文章版权信息：全站配置 + 文章级覆写 + 作者/转载来源。 */
+export type ResolvedLicenseConfig = LicenseConfig & {
+	author: {
+		name: string;
+		url: string;
+	};
+	/** 转载来源链接；空字符串表示原创。 */
+	source: string;
+};
+
 export type LIGHT_DARK_MODE =
 	| typeof LIGHT_MODE
 	| typeof DARK_MODE
@@ -152,12 +195,19 @@ export type BlogPostData = {
 	body: string;
 	title: string;
 	published: Date;
+	publishedAt?: Date;
+	updated?: Date;
+	updatedAt?: Date;
 	description: string;
 	tags: string[];
 	draft?: boolean;
 	image?: string;
 	category?: string;
+	alias?: string;
+	permalink?: string;
 	prevTitle?: string;
+	prevUrl?: string;
+	nextUrl?: string;
 	prevSlug?: string;
 	nextTitle?: string;
 	nextSlug?: string;

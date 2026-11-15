@@ -1,4 +1,8 @@
+import fs from "node:fs/promises";
+import path from "node:path";
 import { fromHtml } from "hast-util-from-html";
+import sharp from "sharp";
+import { isImageOnOwnLine } from "./markdown/core/image-line.mjs";
 
 /**
  * rehype 插件：Markdown 图片通用增强。
@@ -6,7 +10,7 @@ import { fromHtml } from "hast-util-from-html";
  * 语法：`![图片描述 w-50%](图片链接 "图片标题")`
  * - `w-N%`（1~100）写在 alt 文本中，解析后从 alt 移除并作为显示宽度（居中）；
  * - `"图片标题"` 渲染为图片下方的可见图注；
- * - 独立成段的图片在带标题或宽度令牌时包装为 `<figure>`，否则仅补齐
+ * - 独占一行的图片在带标题或宽度令牌时包装为 `<figure>`，否则仅补齐
  *   `loading="lazy"` / `decoding="async"`，不改变既有排版。
  * - 原始 HTML `<img>` 使用同一套规则；匹配配置域名时补充
  *   `referrerpolicy="no-referrer"`。
@@ -143,12 +147,44 @@ function onlyImageChild(node) {
 		: null;
 }
 
-function enhanceImage(image, ancestors, allowFigure, options) {
+async function readImageDimensions(src, filePath) {
+	if (!src || /^(?:https?:|data:|\/\/)/i.test(src)) return undefined;
+	const candidates = [];
+	if (src.startsWith("/")) {
+		candidates.push(path.join(process.cwd(), "public", src.slice(1)));
+	} else if (filePath) {
+		candidates.push(path.resolve(path.dirname(filePath), src));
+	}
+	for (const candidate of candidates) {
+		try {
+			await fs.access(candidate);
+			const metadata = await sharp(candidate).metadata();
+			if (metadata.width && metadata.height) {
+				return { width: metadata.width, height: metadata.height };
+			}
+		} catch {
+			// Missing or unsupported files are left untouched for runtime handling.
+		}
+	}
+	return undefined;
+}
+
+async function enhanceImage(image, ancestors, allowFigure, options, filePath) {
 	image.properties ??= {};
 	const properties = image.properties;
 	// 零额外负担：所有正文图片统一惰性加载与异步解码
 	properties.loading ??= "lazy";
 	properties.decoding ??= "async";
+	if (properties.width == null || properties.height == null) {
+		const dimensions = await readImageDimensions(
+			String(properties.src ?? ""),
+			filePath,
+		);
+		if (dimensions) {
+			properties.width ??= dimensions.width;
+			properties.height ??= dimensions.height;
+		}
+	}
 	if (
 		matchesNoReferrerDomain(
 			String(properties.src ?? ""),
@@ -177,14 +213,26 @@ function enhanceImage(image, ancestors, allowFigure, options) {
 		: image;
 }
 
-function transformChildren(parent, ancestors, options, allowFigure = true) {
+async function transformChildren(
+	parent,
+	ancestors,
+	options,
+	filePath,
+	allowFigure = true,
+) {
 	const nextChildren = [];
 	const canWrapChildImage = allowFigure && parent.tagName !== "p";
 
 	for (const child of parent.children ?? []) {
 		if (child.type === "raw" && /<img\b/i.test(child.value ?? "")) {
 			const fragment = fromHtml(child.value, { fragment: true });
-			transformChildren(fragment, ancestors, options, canWrapChildImage);
+			await transformChildren(
+				fragment,
+				ancestors,
+				options,
+				filePath,
+				canWrapChildImage,
+			);
 			nextChildren.push(...fragment.children);
 			continue;
 		}
@@ -198,20 +246,91 @@ function transformChildren(parent, ancestors, options, allowFigure = true) {
 			const image = onlyImageChild(child);
 			if (image) {
 				nextChildren.push(
-					enhanceImage(image, [...ancestors, child], true, options),
+					await enhanceImage(
+						image,
+						[...ancestors, child],
+						true,
+						options,
+						filePath,
+					),
 				);
+				continue;
+			}
+
+			const children = child.children ?? [];
+			const images = children.map(
+				(node, index) =>
+					node.tagName === "img" &&
+					isImageOnOwnLine(children, index) &&
+					!shouldSkipEnhancement([...ancestors, child], node) &&
+					(Boolean(node.properties?.title?.trim()) ||
+						parseMarkdownImageAlt(node.properties?.alt).width !== undefined),
+			);
+			if (allowFigure && images.some(Boolean)) {
+				let inline = [];
+				for (let index = 0; index < children.length; index++) {
+					const node = children[index];
+					if (!images[index]) {
+						inline.push(node);
+						continue;
+					}
+					if (inline.some((item) => !isWhitespaceText(item))) {
+						const paragraph = { ...child, children: inline };
+						await transformChildren(
+							paragraph,
+							[...ancestors, paragraph],
+							options,
+							filePath,
+							false,
+						);
+						nextChildren.push(paragraph);
+					}
+					inline = [];
+					nextChildren.push(
+						await enhanceImage(
+							node,
+							[...ancestors, child],
+							true,
+							options,
+							filePath,
+						),
+					);
+				}
+				if (inline.some((item) => !isWhitespaceText(item))) {
+					const paragraph = { ...child, children: inline };
+					await transformChildren(
+						paragraph,
+						[...ancestors, paragraph],
+						options,
+						filePath,
+						false,
+					);
+					nextChildren.push(paragraph);
+				}
 				continue;
 			}
 		}
 
 		if (child.tagName === "img") {
 			nextChildren.push(
-				enhanceImage(child, ancestors, canWrapChildImage, options),
+				await enhanceImage(
+					child,
+					ancestors,
+					canWrapChildImage,
+					options,
+					filePath,
+				),
 			);
 			continue;
 		}
 
-		transformChildren(child, [...ancestors, child], options, canWrapChildImage);
+		await transformChildren(
+			child,
+			[...ancestors, child],
+			options,
+			filePath,
+			canWrapChildImage,
+		);
 		nextChildren.push(child);
 	}
 
@@ -228,7 +347,7 @@ export function rehypeMarkdownImages(options = {}) {
 			: [],
 	};
 
-	return (tree) => {
-		transformChildren(tree, [], normalizedOptions);
+	return async (tree, file) => {
+		await transformChildren(tree, [], normalizedOptions, file?.path, true);
 	};
 }

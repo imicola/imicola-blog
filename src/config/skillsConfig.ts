@@ -1,4 +1,5 @@
 import type { SkillsConfig } from "@/types/skillsConfig";
+import { withUserConfig } from "../utils/config-overlay.ts";
 
 /**
  * 技能页行为与展示配置。
@@ -10,8 +11,10 @@ import type { SkillsConfig } from "@/types/skillsConfig";
  *
  * 注：技能的具体内容数据（技能名称、熟练度等级、图标、描述等）请在 `src/data/skills.ts` 中维护。
  */
-export const skillsConfig: SkillsConfig = {
+export const skillsConfig: SkillsConfig = withUserConfig("skills", {
 	enable: true,
+	title: "$t:skills",
+	description: "$t:skillsBanner",
 	categories: [
 		{
 			key: "frontend",
@@ -30,4 +33,4 @@ export const skillsConfig: SkillsConfig = {
 		},
 	],
 	// disabledNames: [],
-};
+});

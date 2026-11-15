@@ -1,4 +1,5 @@
 # Markdown 扩展开发规范
+> 插件注册顺序、阶段依赖和变更验收以 [`markdown-plugin-order.md`](./markdown-plugin-order.md) 为准。
 
 > Markdown 语法的内容特征、条件样式包、动态运行时和 Swup 资源生命周期见 [`markdown-on-demand-loading.md`](./markdown-on-demand-loading.md)。
 
@@ -151,6 +152,8 @@ SSR 输出不会预先隐藏任何面板，并重复输出每个面板标题，�
 
 ## 4. 缓存与刷新
 
+普通 Markdown 图片独占一行时，即使紧邻正文或连续出现，也可以通过 title 为每张图片生成图注；与文字在同一行混排的图片不生成块级图注。宽度令牌为 `w-N%`（1–100）。
+
 修改 remark/rehype 插件后，Astro dev 可能继续提供旧的 Markdown 编译结果。典型信号是：新 CSS 已出现，但插件新增的 class 或 DOM 结构不存在。
 
 Windows 下的最小刷新流程：
@@ -217,3 +220,17 @@ Admonitions、Collapse Panels、Option Groups、Marker、File Tree、Code Tree�
 - [ ] 没有使用 `!important` 对抗 Typography 或 cascade layer；
 - [ ] 清理内容缓存后验证过真实输出；
 - [ ] 单元测试、Playwright、a11y、Astro Check 与构建通过。
+
+## 6.10 文件导入
+
+使用独立一行的 HTML 注释，将仓库内 Markdown 文件在构建期展开到当前文章：
+
+```markdown
+<!-- @include: ../snippets/example.md -->
+<!-- @include: ../snippets/example.md{2-6} -->
+<!-- @include: ../snippets/example.md{5-} -->
+<!-- @include: ../snippets/example.md{-4} -->
+<!-- @include: ../snippets/example.md#region-name -->
+```
+
+路径相对当前 Markdown 文件解析，也可使用仓库根目录相对路径。行号从 1 开始且包含首尾行；区域由源文件中的 `#region name` 与 `#endregion` 标记界定。缺失文件、非法范围、未闭合区域、仓库外路径和递归包含都会保留原注释。代码围栏中的 include 注释不会展开。

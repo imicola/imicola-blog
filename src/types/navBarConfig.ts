@@ -16,3 +16,30 @@ export type NavBarLink = {
 export type NavBarConfig = {
 	links: NavBarLink[];
 };
+
+/**
+ * 导航栏的声明式覆盖条目（内容仓 `config/nav-bar.yaml` 使用）。
+ *
+ * `navBarConfig` 本身要调用 `i18n()` 并引用 `LinkPresets`，无法用 YAML 直接表达，
+ * 因此内容仓写的是这份「引用 + 字面量」的中间形态，由 `resolveNavBarLinks()` 还原成
+ * `NavBarLink`。三种写法：
+ * - `{ preset: "Home" }`：引用主题内置预设，可再带同名字段做局部覆盖；
+ * - `{ name, url, icon }`：完全自定义的链接；
+ * - `{ name, icon, children }`：下拉分组，children 递归使用同一套写法。
+ *
+ * `name` 支持 `"$t:home"` 形式引用 i18n 词条，其余按字面量处理。
+ */
+export type NavBarLinkOverride = {
+	/** 引用 `LinkPresets` 中的预设名（如 "Home"、"GitHub"） */
+	preset?: string;
+	name?: string;
+	url?: string;
+	icon?: string;
+	pageKey?: string;
+	external?: boolean;
+	children?: NavBarLinkOverride[];
+};
+
+export type NavBarConfigOverride = {
+	links: NavBarLinkOverride[];
+};

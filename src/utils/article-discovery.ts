@@ -1,8 +1,11 @@
+import { comparePublicationEntries } from "@utils/content-date";
+
 export interface DiscoverableArticle {
 	slug: string;
 	data: {
 		title: string;
 		published: Date;
+		publishedAt?: Date;
 		description?: string;
 		tags: string[];
 		category: string | null;
@@ -39,9 +42,10 @@ function comparePublishedThenSlug(
 	a: DiscoverableArticle,
 	b: DiscoverableArticle,
 ): number {
-	const dateDifference =
-		b.data.published.getTime() - a.data.published.getTime();
-	return dateDifference || a.slug.localeCompare(b.slug);
+	return comparePublicationEntries(
+		{ id: a.slug, data: a.data },
+		{ id: b.slug, data: b.data },
+	);
 }
 
 function stableHash(value: string): number {

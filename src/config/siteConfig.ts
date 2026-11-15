@@ -3,12 +3,13 @@ import type {
 	ResolvedTextureOptions,
 	TextureConfig,
 } from "@/types/textureConfig";
+import { withUserConfig } from "../utils/config-overlay.ts";
 
 /**
  * 站点核心配置：标题 / 语言 / 主题色（HCT 动态配色）/ 横幅 / 目录 / 进度条 / favicon。
  * 类型见 src/types/config.ts。
  */
-export const siteConfig: SiteConfig = {
+export const siteConfig: SiteConfig = withUserConfig("site", {
 	site: "https://blog.imicola.com/",
 	base: "/",
 	title: "imicola",
@@ -27,6 +28,8 @@ export const siteConfig: SiteConfig = {
 		texture: true, // 是否展示背景纹理选择
 	},
 	lang: "zh_CN", // Language code, e.g. 'en', 'zh_CN', 'ja', etc.
+	// IANA time zone for precise post and moment timestamps. It is independent of lang.
+	timeZone: "Asia/Shanghai",
 	themeColor: {
 		hue: 345, // Default hue 0-360. 站点设计默认粉紫（偏二次元）；262 紫 / 345 粉 也可选
 		fixed: false, // Hide the theme color picker for visitors
@@ -149,7 +152,7 @@ export const siteConfig: SiteConfig = {
 			sizes: "any",
 		},
 	],
-};
+});
 
 /**
  * 解析并返回背景纹理配置选项（包含关闭短路与 0 开销优化判定）

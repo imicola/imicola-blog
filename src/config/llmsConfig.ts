@@ -1,4 +1,5 @@
 import type { LlmsConfig } from "@/types/llmsConfig";
+import { withUserConfig } from "../utils/config-overlay.ts";
 
 /**
  * ─────────────────────────────────────────────────────────────────────────────
@@ -36,9 +37,14 @@ import type { LlmsConfig } from "@/types/llmsConfig";
  *
  * 场景 D：防止某些私密标签被大模型检索
  *   - 在 `excludeTags` 中追加标签名，例如：`excludeTags: ["secret", "private", "diary"]`。
+ *
+ * 场景 E：内容仓（external 模式）覆盖
+ *   - 在内容仓 `config/llms.yaml` 里只写想改的键即可（如 `siteSummary`、`excludeTags`）；
+ *   - 合并规则为「对象递归合并，数组整体替换」，因此改 `corePages` / `customSections`
+ *     需要把整个清单写全。契约见 `docs/content-separation/config-overlay.md`。
  * ─────────────────────────────────────────────────────────────────────────────
  */
-export const llmsConfig: LlmsConfig = {
+export const llmsConfig: LlmsConfig = withUserConfig("llms", {
 	/**
 	 * 是否启用 /llms.txt 与 /llms-full.txt 静态端点生成
 	 * - true (默认): 构建期自动在 dist/ 输出纯文本 Markdown 文件；
@@ -123,4 +129,4 @@ export const llmsConfig: LlmsConfig = {
 	 * ```
 	 */
 	customSections: [],
-};
+});

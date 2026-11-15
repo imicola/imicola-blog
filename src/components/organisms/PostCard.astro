@@ -12,6 +12,7 @@ import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import { formatDateToYYYYMMDD } from "@utils/date-utils";
 import { isEncryptedPost } from "@utils/post-encryption";
+import { getProjectImageLoader } from "@utils/project-images";
 import { getCategoryUrl, getDir, getTagUrl } from "@utils/url-utils";
 
 interface Props {
@@ -73,7 +74,8 @@ if (image) {
 		const normalizedPath = path
 			.normalize(path.join("../../", imageBasePath, image))
 			.replace(/\\/g, "/");
-		const file = files[normalizedPath];
+		const file =
+			files[normalizedPath] ?? getProjectImageLoader(image, imageBasePath);
 		if (file) {
 			const mod = await file();
 			try {

@@ -12,8 +12,11 @@
 			"!**/src/**/*.css",
 			"!**/src/public/**/*",
 			"!**/src/generated/**/*",
+			"!**/src/user/user-config.ts",
 			"!**/dist/**/*",
-			"!**/node_modules/**/*"
+			"!**/node_modules/**/*",
+			"!**/.content-src/**/*",
+			"!**/content.lock.json"
 		]
 	},
 	"formatter": {

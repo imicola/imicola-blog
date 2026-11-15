@@ -1,4 +1,5 @@
 import type { PostCardWidth, PostListConfig } from "@/types/postListConfig";
+import { withUserConfig } from "../utils/config-overlay.ts";
 
 /**
  * 文章列表页配置：分页大小与排版布局。
@@ -17,14 +18,14 @@ import type { PostCardWidth, PostListConfig } from "@/types/postListConfig";
  * GridUI 仅在主内容容器至少能容纳两张所选宽度的卡片时生效；侧栏等因素压窄
  * 内容后会暂时回退 ListUI，但保留 grid 偏好，空间恢复后自动切回。
  */
-export const postListConfig: PostListConfig = {
+export const postListConfig: PostListConfig = withUserConfig("postList", {
 	pageSize: 8,
 	layout: {
 		mode: "list",
 		cover: "right",
 		cardWidth: "regular",
 	},
-};
+});
 
 /** grid 档位 → 卡片最小宽度（--post-card-min 预设，与 shape/type 分档哲学同构）。
     页面框架 90rem：regular 24rem 保证宽屏为 2 列大卡（3 列窄卡会让
